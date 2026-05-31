@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#FF4D00">
+  <title>LogiConnect - Hors ligne</title>
+  <style>
+    :root{--or:#FF4D00;--dk:#060606;--c1:#0D0D0D;--bd:#242424;--mt:#A8A8A8}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:var(--dk);color:#fff;font-family:Arial,Helvetica,sans-serif;display:grid;place-items:center;padding:24px}
+    .box{width:min(430px,100%);background:var(--c1);border:1px solid var(--bd);border-radius:18px;padding:28px;text-align:center}
+    .logo{width:58px;height:58px;margin:0 auto 14px;border-radius:14px;background:var(--or);display:grid;place-items:center;font-size:28px}
+    h1{font-size:24px;margin:0 0 10px;font-weight:900}
+    p{color:var(--mt);line-height:1.6;margin:0 0 22px}
+    button{background:var(--or);color:#fff;border:0;border-radius:12px;padding:13px 18px;font-weight:800;cursor:pointer;width:100%}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <div class="logo">🌍</div>
+    <h1>LogiConnect hors ligne</h1>
+    <p>Votre connexion est absente. Rechargez quand Internet revient pour continuer vos demandes, commandes et paiements.</p>
+    <button onclick="location.reload()">Recharger</button>
+  </main>
+</body>
+</html>
