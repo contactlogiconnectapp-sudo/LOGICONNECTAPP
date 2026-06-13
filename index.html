@@ -8603,9 +8603,41 @@ function savePendingAnnonces(list) {
           devise: a.devise || lcCurrencyForListing(a),
           currency: a.currency || a.devise || lcCurrencyForListing(a)
         };
-        db.from('annonces').upsert([row], { onConflict: 'id' });
+        db.from('annonces').upsert([row], { onConflict: 'id' }).then(function(res) {
+          if (res && res.error) console.warn('Supabase annonces pending:', res.error.message || res.error);
+        });
       } catch(e) { console.warn('Supabase annonces pending:', e); }
     });
+  }
+}
+async function syncPendingAnnoncesFromSupabase() {
+  if (!db) return loadPendingAnnonces();
+  try {
+    const { data, error } = await db
+      .from('annonces')
+      .select('*')
+      .or('statut.eq.en_attente_validation,published.eq.false,visible.eq.false');
+    if (error) {
+      console.warn('Supabase annonces en attente:', error.message || error);
+      return loadPendingAnnonces();
+    }
+    const remote = (data || []).filter(function(a) {
+      const st = String(a && a.statut || '').toLowerCase();
+      return a && a.id && (st === 'en_attente_validation' || a.published === false || a.visible === false);
+    });
+    if (!remote.length) return loadPendingAnnonces();
+    const local = loadPendingAnnonces();
+    const merged = local.slice();
+    remote.forEach(function(a) {
+      const idx = merged.findIndex(function(x){ return String(x.id) === String(a.id); });
+      if (idx >= 0) merged[idx] = Object.assign({}, merged[idx], a);
+      else merged.push(a);
+    });
+    localStorage.setItem('lc_pending_annonces', JSON.stringify(merged));
+    return merged;
+  } catch(e) {
+    console.warn('Supabase annonces en attente:', e);
+    return loadPendingAnnonces();
   }
 }
 function getPendingCount() {
@@ -10817,6 +10849,19 @@ function renderAdminDash() {
         </div>`;
 
     } else if (sec === 'annonces') {
+      if (db && !window.__lcPendingAnnoncesSyncing && (!window.__lcPendingAnnoncesSyncedAt || Date.now() - window.__lcPendingAnnoncesSyncedAt > 30000)) {
+        window.__lcPendingAnnoncesSyncing = true;
+        syncPendingAnnoncesFromSupabase().then(function() {
+          window.__lcPendingAnnoncesSyncing = false;
+          window.__lcPendingAnnoncesSyncedAt = Date.now();
+          const listEl = document.getElementById('annonces-list');
+          if (listEl && window._adminNav) window._adminNav('annonces');
+        }).catch(function(e) {
+          window.__lcPendingAnnoncesSyncing = false;
+          window.__lcPendingAnnoncesSyncedAt = Date.now();
+          console.warn('Sync annonces admin:', e);
+        });
+      }
       const escAnn = function(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); };
       const annonceMoney = function(op){ return lcMoney(op.price || 0, lcCurrencyForListing(op)); };
       window.adminVoirAnnonce = function(id, pending) {
