@@ -5071,6 +5071,36 @@ function getSiteTel()        { return getCfg('lc_site_tel', '+212600000000'); }
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function getResendKey() { return getSecure('lc_cfg_resend_key') || localStorage.getItem('lc_cfg_resend_key') || ''; }
 function getResendFrom() { return localStorage.getItem('lc_cfg_resend_from') || 'LogiConnect <noreply@logiconnectworld.com>'; }
+// Permet à l'admin de relancer un client dont le paiement n'a pas été reçu.
+// Remet la commande en "en_attente_paiement" (si elle était passée par erreur
+// en "paiement_a_valider_admin") et envoie une notification au client.
+async function adminRelancerPaiement(orderId) {
+  var order = escrowOrders.find(function(o){ return o.id === orderId; });
+  if (!order) return;
+  if (!confirm('Relancer le client ' + (order.client_email || '') + ' pour le paiement de la commande ' + orderId + ' ?')) return;
+
+  if (order.statut === 'paiement_a_valider_admin' || order.statut === 'paye_en_attente_service') {
+    order.statut = 'en_attente_paiement';
+  }
+  order.repayment_requested_at = new Date().toISOString();
+  order.repayment_request_count = (order.repayment_request_count || 0) + 1;
+  try { saveOrders(); } catch(e) {}
+
+  try {
+    await sendEmail('template_payment', {
+      to_email: order.client_email || '',
+      order_id: order.id,
+      service: order.service || '',
+      message: 'Nous n\'avons pas encore reçu votre paiement pour la commande ' + order.id + '. Merci de finaliser le règlement via PayPal pour continuer.'
+    });
+  } catch(e) { console.warn('Email relance paiement:', e); }
+
+  try { addActivityLog('relance_paiement', 'Relance paiement envoyée au client pour la commande ' + order.id); } catch(e) {}
+
+  showNotif('Relance envoyée', 'Client notifié', 'Le client a été notifié pour finaliser le paiement de la commande ' + order.id + '.');
+  if (typeof renderDashboard === 'function') renderDashboard();
+}
+
 async function sendEmail(templateId, params) {
   try {
     const res = await fetch('/.netlify/functions/send-email', {
@@ -5940,7 +5970,9 @@ function saveOrders() {
   localStorage.setItem('lc_orders', JSON.stringify(escrowOrders));
   if (db) {
     escrowOrders.forEach(function(order) {
-      try { db.from('commandes').upsert([order], { onConflict: 'id' }); } catch(e) { console.warn('Supabase commandes:', e); }
+      db.from('commandes').upsert([order], { onConflict: 'id' }).then(function(res) {
+        if (res && res.error) console.warn('Supabase commandes upsert error:', res.error, order.id);
+      }).catch(function(e) { console.warn('Supabase commandes:', e); });
     });
   }
 }
@@ -10605,6 +10637,7 @@ function renderAdminDash() {
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             ${o.statut==='en_attente_confirmation'?`<span style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.22);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;">Attente decision prestataire</span>`:''}
             ${(o.statut==='paiement_a_valider_admin' || (o.statut==='paye_en_attente_service' && !lcCanClientSeeQr(o)))?`<button onclick="adminValidatePayment('${o.id}')" style="background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.35);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">✅ Paiement reçu / lancer service</button>`:''}
+            ${(['en_attente_paiement','paiement_a_valider_admin'].includes(o.statut))?`<button onclick="adminRelancerPaiement('${o.id}')" style="background:rgba(255,77,0,.1);border:1px solid rgba(255,77,0,.3);color:var(--or);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">🔁 Relancer client (paiement non reçu)</button>`:''}
             ${(['attente_comptabilite','confirme_client'].includes(o.statut))?`<button onclick="adminReleaseFunds('${o.id}')" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">💸 Libérer ${lcMoney(net, cur)}</button>`:''}
             ${o.statut==='termine'?`<button onclick="generateFondsLiberesPDF(escrowOrders.find(x=>x.id==='${o.id}'))" style="background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.2);color:var(--bl);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;">📄 PDF</button>`:''}
             ${o.statut==='paye_en_attente_service'?`<button onclick="disputeOrder('${o.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;">⚠️ Litige</button>`:''}
@@ -13252,27 +13285,22 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
  * @param {string[]} extraArgs  - Arguments supplémentaires du callback
  */
 function _launchPaypalDirect(orderId, callbackFn, extraArgs) {
-  // Créer un formulaire PayPal invisible et le soumettre programmatiquement
-  const form = document.createElement('form');
-  form.action  = 'https://www.paypal.com/ncp/payment/R95DGGFLMJG3W';
-  form.method  = 'post';
-  form.target  = '_blank'; // Ouvre dans un nouvel onglet
-  form.style.display = 'none';
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-
-  // Déclencher le callback après un délai (laisse PayPal le temps de s\'ouvrir)
-  setTimeout(function() {
-    try {
-      if (typeof window[callbackFn] === 'function') {
-        // Appelle le callback avec orderId + les arguments supplémentaires
-        window[callbackFn](orderId, ...(extraArgs || []));
-      }
-    } catch(e) {
-      console.warn('[LogiConnect] Callback PayPal error:', e);
+  // Déclencher le callback avant la redirection (sinon il ne s'exécutera
+  // jamais : la page va naviguer vers PayPal).
+  try {
+    if (typeof window[callbackFn] === 'function') {
+      window[callbackFn](orderId, ...(extraArgs || []));
     }
-  }, 4000);
+  } catch(e) {
+    console.warn('[LogiConnect] Callback PayPal error:', e);
+  }
+
+  // Redirection directe (même onglet) : un form.submit() avec target="_blank"
+  // déclenché de manière asynchrone (après un await) est souvent bloqué
+  // silencieusement par les navigateurs comme pop-up. La navigation dans le
+  // même onglet n'est jamais bloquée.
+  var paypalUrl = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/ncp/payment/R95DGGFLMJG3W';
+  window.location.href = paypalUrl;
 }
 
 /**
@@ -13778,6 +13806,48 @@ function adminSearchByOrder() {
     var _lcOldSavePending = savePendingAnnonces;
     savePendingAnnonces = function(list) {
       return _lcOldSavePending((list || []).filter(function(a){ return !lcIsAutoRegistrationAnnonce(a); }));
+    };
+  }
+
+  // FIX: escrowOrders n'était jamais synchronisé depuis Supabase (lecture
+  // uniquement de localStorage 'lc_orders'). Une commande créée par un client
+  // sur son appareil n'apparaissait donc jamais chez le prestataire sur un
+  // autre appareil/navigateur. On charge maintenant 'commandes' depuis
+  // Supabase et on fusionne dans escrowOrders avant chaque rendu du dashboard.
+  window.lcSyncCommandesFromSupabase = async function() {
+    if (typeof db === 'undefined' || !db || typeof currentUser === 'undefined' || !currentUser) return;
+    try {
+      var query = db.from('commandes').select('*');
+      var isAdmin = currentUser.email === ADMIN_EMAIL || currentUser.type === 'admin';
+      if (!isAdmin) {
+        var email = currentUser.email || '';
+        query = query.or(
+          'client_email.eq.' + email +
+          ',prestataire_email.eq.' + email +
+          ',prestataire_user_id.eq.' + email
+        );
+      }
+      var res = await query;
+      var rows = res && res.data ? res.data : [];
+      if (!rows.length) return;
+      rows.forEach(function(row) {
+        var idx = escrowOrders.findIndex(function(o){ return o.id === row.id; });
+        if (idx >= 0) escrowOrders[idx] = Object.assign({}, escrowOrders[idx], row);
+        else escrowOrders.push(row);
+      });
+      localStorage.setItem('lc_orders', JSON.stringify(escrowOrders));
+    } catch(e) { console.warn('Supabase commandes sync:', e); }
+  };
+
+  if (typeof renderDashboard === 'function') {
+    var _lcOldRenderDashboard = renderDashboard;
+    renderDashboard = function() {
+      if (currentUser && typeof db !== 'undefined' && db && !renderDashboard._supaLoaded) {
+        renderDashboard._supaLoaded = true;
+        window.lcSyncCommandesFromSupabase().then(function(){ _lcOldRenderDashboard(); });
+        return;
+      }
+      return _lcOldRenderDashboard.apply(this, arguments);
     };
   }
   if (typeof doRegister === 'function') {
