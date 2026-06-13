@@ -13091,7 +13091,7 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
                  padding:12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">
           Annuler
         </button>
-        <button onclick="document.getElementById('${popupId}').remove(); _launchPaypalDirect('${orderId}','${callbackFn}',${JSON.stringify(callbackArgs||[])})"
+        <button onclick="document.getElementById('${popupId}').remove(); _launchPaypalDirect('${orderId}','${callbackFn}',JSON.parse(atob('${btoa(JSON.stringify(callbackArgs||[]))}')),0)"
           style="flex:2;background:#FFD140;color:#000;border:none;
                  padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
           Confirmer et payer avec PayPal
@@ -13152,7 +13152,7 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
         onmouseout="this.style.color='#999';this.style.borderColor='#2A2A2A'">
         Annuler
       </button>
-      <button onclick="document.getElementById('${popupId}').remove(); _launchPaypalDirect('${orderId}','${callbackFn}',${JSON.stringify(callbackArgs||[])})"
+      <button onclick="document.getElementById('${popupId}').remove(); _launchPaypalDirect('${orderId}','${callbackFn}',JSON.parse(atob('${btoa(JSON.stringify(callbackArgs||[]))}')),${montantUSD})"
         style="flex:2;background:#FFD140;color:#000;border:none;
                padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
                transition:all .2s;"
@@ -13175,9 +13175,8 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
  * @param {string} callbackFn   - Nom de la fonction JS à appeler après redirection PayPal
  * @param {string[]} extraArgs  - Arguments supplémentaires du callback
  */
-function _launchPaypalDirect(orderId, callbackFn, extraArgs) {
-  // Déclencher le callback avant la redirection (sinon il ne s'exécutera
-  // jamais : la page va naviguer vers PayPal).
+function _launchPaypalDirect(orderId, callbackFn, extraArgs, montantUSD) {
+  // Déclencher le callback avant la redirection
   try {
     if (typeof window[callbackFn] === 'function') {
       window[callbackFn](orderId, ...(extraArgs || []));
@@ -13186,11 +13185,16 @@ function _launchPaypalDirect(orderId, callbackFn, extraArgs) {
     console.warn('[LogiConnect] Callback PayPal error:', e);
   }
 
-  // Redirection directe (même onglet) : un form.submit() avec target="_blank"
-  // déclenché de manière asynchrone (après un await) est souvent bloqué
-  // silencieusement par les navigateurs comme pop-up. La navigation dans le
-  // même onglet n'est jamais bloquée.
-  var paypalUrl = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/ncp/payment/R95DGGFLMJG3W';
+  // Construire l'URL PayPal.me avec le montant USD exact
+  // Format : https://www.paypal.com/paypalme/logiconnect/1402.70USD
+  var baseLink = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/paypalme/logiconnect';
+  var paypalUrl;
+  if (montantUSD && parseFloat(montantUSD) > 0) {
+    var cleanBase = baseLink.replace(/\/+$/, '');
+    paypalUrl = cleanBase + '/' + parseFloat(montantUSD).toFixed(2) + 'USD';
+  } else {
+    paypalUrl = baseLink;
+  }
   window.location.href = paypalUrl;
 }
 
