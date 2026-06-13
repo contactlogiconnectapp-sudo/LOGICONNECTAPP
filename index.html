@@ -4219,7 +4219,7 @@ if (location.protocol === 'http:' && location.hostname !== 'localhost' && locati
 // CONFIG PAIEMENT — à personnaliser
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_VOTRE_CLE_STRIPE_PUBLIQUE'; // ⚠️ Remplacez par votre clé Stripe publique
-const PAYPAL_ME_LINK  = 'https://www.paypal.com/paypalme/logiconnect'; // ⚠️ Votre lien PayPal.me
+const PAYPAL_ME_LINK  = 'https://www.paypal.com/ncp/payment/YFR9FPKX68TQA'; // ✅ Hosted Button PayPal
 const BANK_IBAN       = 'MA64 0001 0000 1234 5678 9012';               // ⚠️ Votre IBAN
 const BANK_BIC        = 'BMCEMAMC';                                     // ⚠️ Votre BIC/SWIFT
 const BANK_NOM        = 'LogiConnect SARL';                             // ⚠️ Nom du bénéficiaire
@@ -13159,8 +13159,8 @@ function _triggerPaypalFallback(orderId, callbackFn, montantUSD) {
   try {
     if (typeof window[callbackFn] === 'function') window[callbackFn](orderId);
   } catch(e) {}
-  var base = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/paypalme/logiconnect';
-  window.location.href = base.replace(/\/+$/, '') + '/' + parseFloat(montantUSD).toFixed(2) + 'USD';
+  // Fallback: hosted button (PayPal.me non configuré)
+  window.location.href = 'https://www.paypal.com/ncp/payment/YFR9FPKX68TQA';
 }
 
 function _launchPaypalDirect(orderId, callbackFn, extraArgs, montantUSD) {
@@ -13170,11 +13170,8 @@ function _launchPaypalDirect(orderId, callbackFn, extraArgs, montantUSD) {
       window[callbackFn](orderId, ...(extraArgs || []));
     }
   } catch(e) { console.warn('[LogiConnect] Callback PayPal error:', e); }
-  var base = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/paypalme/logiconnect';
-  var url = montantUSD && parseFloat(montantUSD) > 0
-    ? base.replace(/\/+$/, '') + '/' + parseFloat(montantUSD).toFixed(2) + 'USD'
-    : base;
-  window.location.href = url;
+  // Redirection vers hosted button
+  window.location.href = 'https://www.paypal.com/ncp/payment/YFR9FPKX68TQA';
 }
 
 // Charge le SDK PayPal une seule fois
