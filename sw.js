@@ -1,4 +1,4 @@
-const LOGICONNECT_CACHE = 'logiconnect-pwa-v1';
+const LOGICONNECT_CACHE = 'logiconnect-pwa-v2';
 const APP_SHELL = [
   './',
   './index.html',

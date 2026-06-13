@@ -4119,9 +4119,9 @@ goPage = function goPage(name, btn) {
 // CONFIG — Chargée depuis localStorage (Setup Wizard) ou valeurs par défaut
 // Pour configurer : ouvrez le site → le wizard de configuration s'affiche automatiquement
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-const SUPABASE_URL = getSecure('lc_cfg_supa_url') || 'VOTRE_URL_SUPABASE';
-const SUPABASE_KEY = getSecure('lc_cfg_supa_key') || 'VOTRE_CLE_ANON_SUPABASE';
-const ADMIN_EMAIL  = getSecure('lc_cfg_admin_email') || '';
+const SUPABASE_URL = getSecure('lc_cfg_supa_url') || 'https://fhabovjsikqshprnltci.supabase.co';
+const SUPABASE_KEY = getSecure('lc_cfg_supa_key') || 'sb_publishable_hr4XxgInVGT-RmavqsV3ig_mBsNYLkN';
+const ADMIN_EMAIL  = getSecure('lc_cfg_admin_email') || 'contactlogiconnectapp@gmail.com';
 // ✅ Mot de passe stocké sous forme de hash SHA-256 — jamais en clair
 const ADMIN_PASSWORD_HASH = getSecure('lc_cfg_admin_hash') || '';
 const PAYPAL_EMAIL = localStorage.getItem('lc_cfg_paypal') || 'paiement@logiconnect.app';
@@ -5069,17 +5069,43 @@ function getSiteTel()        { return getCfg('lc_site_tel', '+212600000000'); }
 // Les fonctions ci-dessous sont des no-ops silencieux.
 // Ne pas toucher : les emails sont configurés dans Supabase Dashboard.
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-function getResendKey() { return ''; }
-function getResendFrom() { return ''; }
+function getResendKey() { return getSecure('lc_cfg_resend_key') || localStorage.getItem('lc_cfg_resend_key') || ''; }
+function getResendFrom() { return localStorage.getItem('lc_cfg_resend_from') || 'LogiConnect <noreply@logiconnectworld.com>'; }
 async function sendEmail(templateId, params) {
-  // Emails gérés par Supabase — aucune action frontend requise
-  return { status: 200 };
+  try {
+    const res = await fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ templateId, params: params || {} })
+    });
+    const data = await res.json().catch(function(){ return {}; });
+    if (!res.ok) throw new Error(data.error || 'Email non envoyé');
+    return { status: res.status, data };
+  } catch(e) {
+    console.warn('Email LogiConnect:', e.message || e);
+    return { status: 0, error: e.message || String(e) };
+  }
 }
-function getEmailSubject() { return ''; }
-function buildEmailHtml() { return ''; }
-async function sendWelcomeEmail(user) { return { status: 200 }; }
-async function sendPasswordResetEmail(email, token) { return { status: 200 }; }
-async function sendOrderNotifToProvider(order) { return { status: 200 }; }
+function getEmailSubject(templateId, params) {
+  const map = {
+    template_confirm: 'Bienvenue sur LogiConnect',
+    template_payment: 'Notification paiement LogiConnect',
+    template_release: 'Mise à jour commande LogiConnect',
+    template_notif: 'Notification LogiConnect',
+    template_reset: 'Réinitialisation du mot de passe LogiConnect'
+  };
+  return (params && params.subject) || map[templateId] || 'Notification LogiConnect';
+}
+function buildEmailHtml(templateId, params) {
+  params = params || {};
+  const rows = Object.keys(params).map(function(k){
+    return '<tr><td style="padding:6px 10px;color:#777;">' + sanitizeInput(k) + '</td><td style="padding:6px 10px;color:#111;font-weight:700;">' + sanitizeInput(String(params[k] == null ? '' : params[k])) + '</td></tr>';
+  }).join('');
+  return '<div style="font-family:Arial,sans-serif;line-height:1.5;color:#111;"><h2 style="color:#ff4d00;">LogiConnect</h2><p>Vous avez une nouvelle notification.</p><table style="border-collapse:collapse;width:100%;max-width:680px;">' + rows + '</table></div>';
+}
+async function sendWelcomeEmail(user) { return sendEmail('template_confirm', { to_email:user.email, to_name:user.prenom || user.email }); }
+async function sendPasswordResetEmail(email, token) { return sendEmail('template_reset', { to_email:email, token:token, subject:'Réinitialisation du mot de passe LogiConnect' }); }
+async function sendOrderNotifToProvider(order) { return sendEmail('template_notif', { to_email:order.prestataire_email || ADMIN_EMAIL, order_id:order.id, service:order.service }); }
 
 async function sendPaymentConfirmEmail(order) {
   await sendEmail('template_payment', {
@@ -5366,13 +5392,26 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '⏳ Connexion...';
   const emailLower = email.toLowerCase();
 
-  // ✅ CONNEXION ADMIN — comparaison hash SHA-256 uniquement
+  // ✅ CONNEXION ADMIN — hash local si présent, sinon Supabase Auth + profil admin
   if (emailLower === ADMIN_EMAIL.toLowerCase()) {
-    const match = await checkPassword(pass, ADMIN_PASSWORD_HASH);
-    if (match) {
-      if (db && db.auth) {
-        try { await db.auth.signInWithPassword({ email: ADMIN_EMAIL, password: pass }); } catch(e) { console.warn('Supabase admin login:', e); }
+    let match = false;
+    if (ADMIN_PASSWORD_HASH) {
+      match = await checkPassword(pass, ADMIN_PASSWORD_HASH);
+    }
+    if (!match && db && db.auth) {
+      try {
+        const { error: authError } = await db.auth.signInWithPassword({ email: ADMIN_EMAIL, password: pass });
+        if (!authError) {
+          const { data: profileData, error: profileError } = await db.from('profiles').select('email,type,role,statut').ilike('email', ADMIN_EMAIL).maybeSingle();
+          match = !profileError && !!profileData && (profileData.role === 'admin' || profileData.type === 'admin') && profileData.statut !== 'bloque';
+        } else {
+          console.warn('Supabase admin login:', authError.message);
+        }
+      } catch(e) {
+        console.warn('Supabase admin login:', e);
       }
+    }
+    if (match) {
       resetRateLimit(email);
       // Session admin SANS le mot de passe
       const adminUser = lcHydrateUserLocale({ email: ADMIN_EMAIL, prenom: 'Admin', nom: 'LogiConnect', type: 'admin' }, false);

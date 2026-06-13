@@ -1,10 +1,13 @@
+[functions]
+  directory = "netlify/functions"
+
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(self), microphone=(), geolocation=(), payment=(self)"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(self), payment=(self)"
 
 [[headers]]
   for = "/sw.js"
