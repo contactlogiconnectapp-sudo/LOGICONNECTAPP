@@ -13022,9 +13022,7 @@ async function fetchUSDRate(fromCurrency) {
  */
 async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, orderId, callbackFn, callbackArgs) {
 
-  // --- Construire le HTML de la popup en mode "chargement" ---
   const popupId = 'usd-conversion-popup';
-  // Supprimer une éventuelle popup précédente
   document.getElementById(popupId)?.remove();
 
   const popup = document.createElement('div');
@@ -13035,20 +13033,16 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
     padding:20px;backdrop-filter:blur(10px);animation:fadeIn .25s ease;
   `;
 
-  // Contenu initial : état chargement
   popup.innerHTML = `
     <div id="usd-popup-box" style="
       background:#131313;border:1px solid #2A2A2A;border-radius:20px;
-      padding:36px 32px;max-width:460px;width:100%;position:relative;
+      padding:36px 32px;max-width:480px;width:100%;position:relative;
       animation:popIn .3s ease;
     ">
-      <!-- Bouton fermer -->
       <button onclick="document.getElementById('${popupId}').remove()"
         style="position:absolute;top:14px;right:14px;background:#1A1A1A;border:none;
                color:#666;font-size:14px;width:30px;height:30px;border-radius:7px;
                display:flex;align-items:center;justify-content:center;cursor:pointer;">✕</button>
-
-      <!-- Icône et titre -->
       <div style="text-align:center;margin-bottom:24px;">
         <div style="font-size:40px;margin-bottom:10px;">💱</div>
         <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;">
@@ -13056,8 +13050,6 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
         </div>
         <div style="font-size:13px;color:#666;">Paiement traité en USD via PayPal</div>
       </div>
-
-      <!-- Zone de contenu dynamique (chargement puis résultat) -->
       <div id="usd-popup-content">
         <div style="text-align:center;padding:20px;color:#999;font-size:13px;">
           <div style="font-size:24px;margin-bottom:10px;animation:pulse 1.2s infinite;">⏳</div>
@@ -13069,47 +13061,30 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
 
   document.body.appendChild(popup);
 
-  // --- Récupérer le taux en direct ---
+  // Charger le SDK PayPal si pas déjà présent
+  await _ensurePaypalSDK();
+
+  // Récupérer le taux USD
   const result = await fetchUSDRate(deviseCode);
-
   const contentEl = document.getElementById('usd-popup-content');
-  if (!contentEl) return; // L\'utilisateur a fermé la popup entre temps
+  if (!contentEl) return;
 
-  if (!result) {
-    // Erreur API : afficher un message et proposer quand même de payer
-    contentEl.innerHTML = `
-      <div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.25);
-                  border-radius:12px;padding:14px;margin-bottom:18px;font-size:13px;color:#FFB300;text-align:center;">
-        ⚠️ Impossible de récupérer le taux de change en temps réel.<br>
-        <span style="font-size:12px;color:#666;margin-top:4px;display:block;">
-          PayPal appliquera automatiquement le taux du marché.
-        </span>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:8px;">
-        <button onclick="document.getElementById('${popupId}').remove()"
-          style="flex:1;background:#1A1A1A;border:1px solid #2A2A2A;color:#999;
-                 padding:12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">
-          Annuler
-        </button>
-        <button onclick="document.getElementById('${popupId}').remove(); _launchPaypalDirect('${orderId}','${callbackFn}',JSON.parse(atob('${btoa(JSON.stringify(callbackArgs||[]))}')),0)"
-          style="flex:2;background:#FFD140;color:#000;border:none;
-                 padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
-          Confirmer et payer avec PayPal
-        </button>
-      </div>
-    `;
-    return;
+  // Calculer montant USD
+  const rate = result ? result.rate : lcUsdRate(deviseCode);
+  const montantUSD = Math.ceil(montantLocal * rate * 100) / 100;
+  const montantUSDFormatted = montantUSD.toFixed(2);
+  const sourceLabel = !result ? 'Taux estimé (fallback)' : result.source === 'cache' ? 'Taux du jour (mis en cache)' : 'Taux du jour (marchés financiers)';
+
+  // Déclencher le callback MAINTENANT (avant que PayPal redirige)
+  function _triggerCallback() {
+    try {
+      if (typeof window[callbackFn] === 'function') {
+        window[callbackFn](orderId, ...(callbackArgs || []));
+      }
+    } catch(e) { console.warn('[LogiConnect] Callback PayPal error:', e); }
   }
 
-  // --- Calculer le montant converti ---
-  const rate = result.rate;
-  const montantUSD = Math.ceil(montantLocal * rate * 100) / 100; // arrondi au cent supérieur
-  const montantUSDFormatted = montantUSD.toFixed(2);
-  const sourceLabel = result.source === 'cache' ? 'Taux du jour (mis en cache)' : 'Taux du jour (marchés financiers internationaux)';
-
-  // --- Afficher le résultat ---
   contentEl.innerHTML = `
-    <!-- Message principal conforme à la demande -->
     <div style="background:rgba(0,112,243,.07);border:1px solid rgba(0,112,243,.25);
                 border-radius:14px;padding:18px;margin-bottom:18px;text-align:center;">
       <div style="font-size:13px;color:#888;margin-bottom:8px;">Le paiement sera traité en USD</div>
@@ -13120,11 +13095,10 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
         <b style="color:#0070f3;font-family:'Syne',sans-serif;font-size:22px;"> $${montantUSDFormatted} USD</b>
       </div>
       <div style="font-size:11px;color:#555;margin-top:8px;">
-        📊 ${sourceLabel} — 1 ${deviseCode} = ${rate.toFixed(6)} USD
+        📊 ${sourceLabel} — 1 ${deviseCode} = ${rate.toFixed(4)} USD
       </div>
     </div>
 
-    <!-- Récapitulatif -->
     <div style="background:#0D0D0D;border:1px solid #1E1E1E;border-radius:10px;
                 padding:12px 14px;margin-bottom:20px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;font-size:13px;">
@@ -13142,60 +13116,82 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
       </div>
     </div>
 
-    <!-- Boutons d\'action -->
-    <div style="display:flex;gap:10px;">
+    <div id="paypal-smart-btn-container" style="margin-bottom:12px;min-height:50px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;">
       <button onclick="document.getElementById('${popupId}').remove()"
         style="flex:1;background:#1A1A1A;border:1px solid #2A2A2A;color:#999;
-               padding:13px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
-               transition:all .2s;"
-        onmouseover="this.style.color='#fff';this.style.borderColor='#444'"
-        onmouseout="this.style.color='#999';this.style.borderColor='#2A2A2A'">
+               padding:13px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">
         Annuler
-      </button>
-      <button onclick="document.getElementById('${popupId}').remove(); _launchPaypalDirect('${orderId}','${callbackFn}',JSON.parse(atob('${btoa(JSON.stringify(callbackArgs||[]))}')),${montantUSD})"
-        style="flex:2;background:#FFD140;color:#000;border:none;
-               padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
-               transition:all .2s;"
-        onmouseover="this.style.background='#FFDA60'"
-        onmouseout="this.style.background='#FFD140'">
-        🅿️ Confirmer et payer avec PayPal
       </button>
     </div>
     <div style="text-align:center;margin-top:10px;font-size:10px;color:#444;">
-      ðŸ”’ Vous serez redirigé vers PayPal · Paiement 100% sécurisé
+      🔒 Paiement sécurisé via PayPal · Vous serez redirigé vers PayPal
     </div>
   `;
+
+  // Rendre le bouton PayPal Smart Button
+  try {
+    if (window.paypal && window.paypal.HostedButtons) {
+      window.paypal.HostedButtons({
+        hostedButtonId: 'YFR9FPKX68TQA',
+        onApprove: function(data) {
+          document.getElementById(popupId)?.remove();
+          _triggerCallback();
+          showNotif('Paiement reçu', 'Merci !', 'Votre paiement PayPal a été validé. Votre commande est en cours de traitement.');
+        }
+      }).render('#paypal-smart-btn-container');
+    } else {
+      throw new Error('PayPal SDK non disponible');
+    }
+  } catch(e) {
+    console.warn('[LogiConnect] PayPal Smart Button error:', e);
+    // Fallback : bouton manuel
+    var fb = document.getElementById('paypal-smart-btn-container');
+    if (fb) fb.innerHTML = '<button onclick="document.getElementById(\'' + popupId + '\').remove(); ' +
+      '_triggerPaypalFallback(\'' + orderId + '\',\'' + callbackFn + '\',' + montantUSD + ')" ' +
+      'style="width:100%;background:#FFD140;color:#000;border:none;padding:13px;border-radius:10px;' +
+      'font-size:14px;font-weight:700;cursor:pointer;">🅿️ Payer $' + montantUSDFormatted + ' USD via PayPal</button>';
+  }
 }
 
-/**
- * Lance le formulaire PayPal après confirmation de la popup.
- * Cette fonction crée un formulaire invisible, le soumet et déclenche le callback.
- *
- * @param {string} orderId      - ID de la commande
- * @param {string} callbackFn   - Nom de la fonction JS à appeler après redirection PayPal
- * @param {string[]} extraArgs  - Arguments supplémentaires du callback
- */
+function _triggerPaypalFallback(orderId, callbackFn, montantUSD) {
+  try {
+    if (typeof window[callbackFn] === 'function') window[callbackFn](orderId);
+  } catch(e) {}
+  var base = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/paypalme/logiconnect';
+  window.location.href = base.replace(/\/+$/, '') + '/' + parseFloat(montantUSD).toFixed(2) + 'USD';
+}
+
 function _launchPaypalDirect(orderId, callbackFn, extraArgs, montantUSD) {
-  // Déclencher le callback avant la redirection
+  // Conservé pour compatibilité — normalement remplacé par Smart Buttons
   try {
     if (typeof window[callbackFn] === 'function') {
       window[callbackFn](orderId, ...(extraArgs || []));
     }
-  } catch(e) {
-    console.warn('[LogiConnect] Callback PayPal error:', e);
-  }
+  } catch(e) { console.warn('[LogiConnect] Callback PayPal error:', e); }
+  var base = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/paypalme/logiconnect';
+  var url = montantUSD && parseFloat(montantUSD) > 0
+    ? base.replace(/\/+$/, '') + '/' + parseFloat(montantUSD).toFixed(2) + 'USD'
+    : base;
+  window.location.href = url;
+}
 
-  // Construire l'URL PayPal.me avec le montant USD exact
-  // Format : https://www.paypal.com/paypalme/logiconnect/1402.70USD
-  var baseLink = (typeof getDynPaypalLink === 'function' ? getDynPaypalLink() : '') || 'https://www.paypal.com/paypalme/logiconnect';
-  var paypalUrl;
-  if (montantUSD && parseFloat(montantUSD) > 0) {
-    var cleanBase = baseLink.replace(/\/+$/, '');
-    paypalUrl = cleanBase + '/' + parseFloat(montantUSD).toFixed(2) + 'USD';
-  } else {
-    paypalUrl = baseLink;
-  }
-  window.location.href = paypalUrl;
+// Charge le SDK PayPal une seule fois
+var _paypalSdkLoaded = false;
+var _paypalSdkLoading = null;
+function _ensurePaypalSDK() {
+  if (_paypalSdkLoaded && window.paypal) return Promise.resolve();
+  if (_paypalSdkLoading) return _paypalSdkLoading;
+  _paypalSdkLoading = new Promise(function(resolve) {
+    if (window.paypal) { _paypalSdkLoaded = true; resolve(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://www.paypal.com/sdk/js?client-id=BAAoWCiRk-XaLONHeHqvHAFERH0rNqMctJThGMVbHvDnoyyeiNPiGGJ3v7nuBRdylKcukGrFcL08IodEks&components=hosted-buttons&disable-funding=venmo&currency=USD';
+    s.onload = function() { _paypalSdkLoaded = true; resolve(); };
+    s.onerror = function() { resolve(); }; // résoudre quand même pour ne pas bloquer
+    document.head.appendChild(s);
+  });
+  return _paypalSdkLoading;
 }
 
 /**
