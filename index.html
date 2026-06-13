@@ -2779,58 +2779,6 @@ function generateRapportComptaGroupe(ambs, total) {
   }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ADMIN — RECHERCHE PAR N° COMMANDE / AMBASSADEUR
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-function adminSearchByOrder() {
-  var _document$getElementB;
-  var q = (((_document$getElementB = document.getElementById('admin-search-order')) === null || _document$getElementB === void 0 ? void 0 : _document$getElementB.value) || '').trim().toUpperCase();
-  var res = document.getElementById('admin-search-result');
-  if (!q || !res) return;
-  var order = escrowOrders.find(function (o) {
-    return o.id.toUpperCase() === q;
-  });
-  if (!order) {
-    res.innerHTML = '<div style="color:var(--rd);font-size:13px;padding:8px;">❌ Aucune commande trouvée pour "' + q + '"</div>';
-    return;
-  }
-  var sc = {
-    en_attente_confirmation: 'pend',
-    en_attente_paiement: 'warn',
-    paye_en_attente_service: 'info',
-    termine: 'ok',
-    litige: 'err'
-  }[order.statut] || 'pend';
-  var sl = {
-    en_attente_confirmation: '📩 Attente',
-    en_attente_paiement: '💳 À payer',
-    paye_en_attente_service: '🔒 En cours',
-    termine: '✅ Terminé',
-    litige: '⚠️ Litige'
-  }[order.statut] || order.statut;
-  res.innerHTML = '<div style="background:var(--c1);border:1px solid rgba(255,77,0,.4);border-radius:12px;padding:16px;">' + '<div style="font-size:13px;font-weight:700;color:var(--or);margin-bottom:10px;">📦 Commande : ' + order.id + '</div>' + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:12px;">' + '<div><span style="color:var(--mt);">Service : </span><span style="color:#fff;">' + order.service + '</span></div>' + '<div><span style="color:var(--mt);">Montant : </span><span style="color:var(--or);font-weight:700;">' + order.montant + '€</span></div>' + '<div><span style="color:var(--mt);">Commission : </span><span style="color:var(--gr);">' + order.commission + '€</span></div>' + '<div><span style="color:var(--mt);">Client : </span><span style="color:#fff;">' + (order.client_nom || order.client_email) + '</span></div>' + '<div><span style="color:var(--mt);">Date : </span><span style="color:#fff;">' + new Date(order.date).toLocaleString('fr-FR') + '</span></div>' + '<div><span class="badge ' + sc + '" style="font-size:10px;">' + sl + '</span></div>' + (order.ambassadeur_code ? '<div style="grid-column:1/-1;"><span style="color:var(--mt);">Ambassadeur : </span><span style="color:var(--or);font-weight:700;">' + order.ambassadeur_code + '</span></div>' : '') + '</div></div>';
-}
-function adminSearchByAmb() {
-  var _document$getElementB2;
-  var q = (((_document$getElementB2 = document.getElementById('admin-search-amb')) === null || _document$getElementB2 === void 0 ? void 0 : _document$getElementB2.value) || '').trim().toUpperCase();
-  var res = document.getElementById('admin-search-result');
-  if (!q || !res) return;
-  var orders = escrowOrders.filter(function (o) {
-    return (o.ambassadeur_code || '').toUpperCase() === q;
-  });
-  var amb = ambassadeurs.find(function (a) {
-    return a.code.toUpperCase() === q;
-  });
-  if (!amb && orders.length === 0) {
-    res.innerHTML = '<div style="color:var(--rd);font-size:13px;padding:8px;">❌ Aucun ambassadeur trouvé pour "' + q + '"</div>';
-    return;
-  }
-  var ambInfo = amb ? '<div style="background:var(--c1);border:1px solid rgba(255,77,0,.4);border-radius:12px;padding:14px;margin-bottom:10px;">' + '<div style="font-size:13px;font-weight:700;color:var(--or);">🎓 ' + (amb.prenom || '') + ' ' + (amb.nom || '') + ' — ' + amb.code + '</div>' + '<div style="font-size:12px;color:var(--mt2);margin-top:6px;">Email : ' + amb.email + ' &nbsp;•&nbsp; Tel : ' + (amb.telephone || '—') + '</div>' + '<div style="font-size:12px;color:var(--gr);margin-top:4px;">Commission totale : ' + (amb.commissions_total || 0) + '€ &nbsp;•&nbsp; En attente : ' + (amb.commissions_en_attente || 0) + '€</div>' + '</div>' : '';
-  var orderRows = orders.map(function (o) {
-    return '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;">' + '<span style="color:var(--mt2);font-family:monospace;min-width:90px;">' + o.id + '</span>' + '<span style="flex:1;color:#fff;">' + o.service + '</span>' + '<span style="color:var(--or);font-weight:700;">' + o.montant + '€</span>' + '<span style="color:var(--gr);margin-left:6px;">comm:' + o.commission + '€</span>' + '<span style="color:var(--mt);font-size:10px;margin-left:6px;">' + new Date(o.date).toLocaleDateString('fr-FR') + '</span>' + '</div>';
-  }).join('') || '<div style="font-size:12px;color:var(--mt);padding:8px;">Aucune commande liée à cet ambassadeur</div>';
-  res.innerHTML = ambInfo + '<div style="background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px;">' + '<div style="font-size:12px;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:8px;">' + orders.length + ' commande(s) liée(s)</div>' + orderRows + '</div>';
-}
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // ADMIN — EXPORT EXCEL (CSV compatible Excel)
@@ -12948,63 +12896,6 @@ function generateRapportComptaGroupe(ambs, total) {
     doc.save('Rapport_Compta_Ambassadeurs_' + new Date().toISOString().split('T')[0] + '.pdf');
   } catch(e) { console.warn('PDF rapport compta:', e); }
 }
-
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ADMIN — RECHERCHE PAR N° COMMANDE / AMBASSADEUR
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-function adminSearchByOrder() {
-  var q = (document.getElementById('admin-search-order')?.value || '').trim().toUpperCase();
-  var res = document.getElementById('admin-search-result');
-  if (!q || !res) return;
-  var order = escrowOrders.find(function(o){ return o.id.toUpperCase() === q; });
-  if (!order) {
-    res.innerHTML = '<div style="color:var(--rd);font-size:13px;padding:8px;">❌ Aucune commande trouvée pour "' + q + '"</div>';
-    return;
-  }
-  var sc = {en_attente_confirmation:'pend',en_attente_paiement:'warn',paiement_a_valider_admin:'warn',paye_en_attente_service:'info',attente_comptabilite:'warn',confirme_client:'ok',termine:'ok',litige:'err'}[order.statut]||'pend';
-          var sl = {en_attente_confirmation:'📩 Attente',en_attente_paiement:'💳 À payer',paiement_a_valider_admin:'⏳ Paiement à valider',paye_en_attente_service:'🔒 Ordre envoyé',attente_comptabilite:'📷 Attente comptabilité',confirme_client:'✅ Client OK',termine:'✅ Terminé',litige:'⚠️ Litige'}[order.statut]||order.statut;
-  res.innerHTML = '<div style="background:var(--c1);border:1px solid rgba(255,77,0,.4);border-radius:12px;padding:16px;">'
-    + '<div style="font-size:13px;font-weight:700;color:var(--or);margin-bottom:10px;">📦 Commande : ' + order.id + '</div>'
-    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:12px;">'
-    + '<div><span style="color:var(--mt);">Service : </span><span style="color:#fff;">' + order.service + '</span></div>'
-    + '<div><span style="color:var(--mt);">Montant : </span><span style="color:var(--or);font-weight:700;">' + order.montant + '€</span></div>'
-    + '<div><span style="color:var(--mt);">Commission : </span><span style="color:var(--gr);">' + order.commission + '€</span></div>'
-    + '<div><span style="color:var(--mt);">Client : </span><span style="color:#fff;">' + (order.client_nom||order.client_email) + '</span></div>'
-    + '<div><span style="color:var(--mt);">Date : </span><span style="color:#fff;">' + new Date(order.date).toLocaleString('fr-FR') + '</span></div>'
-    + '<div><span class="badge ' + sc + '" style="font-size:10px;">' + sl + '</span></div>'
-    + (order.ambassadeur_code ? '<div style="grid-column:1/-1;"><span style="color:var(--mt);">Ambassadeur : </span><span style="color:var(--or);font-weight:700;">' + order.ambassadeur_code + '</span></div>' : '')
-    + '</div></div>';
-}
-
-function adminSearchByAmb() {
-  var q = (document.getElementById('admin-search-amb')?.value || '').trim().toUpperCase();
-  var res = document.getElementById('admin-search-result');
-  if (!q || !res) return;
-  var orders = escrowOrders.filter(function(o){ return (o.ambassadeur_code||'').toUpperCase() === q; });
-  var amb = ambassadeurs.find(function(a){ return a.code.toUpperCase() === q; });
-  if (!amb && orders.length === 0) {
-    res.innerHTML = '<div style="color:var(--rd);font-size:13px;padding:8px;">❌ Aucun ambassadeur trouvé pour "' + q + '"</div>';
-    return;
-  }
-  var ambInfo = amb ? '<div style="background:var(--c1);border:1px solid rgba(255,77,0,.4);border-radius:12px;padding:14px;margin-bottom:10px;">'
-    + '<div style="font-size:13px;font-weight:700;color:var(--or);">🎓 ' + (amb.prenom||'') + ' ' + (amb.nom||'') + ' — ' + amb.code + '</div>'
-    + '<div style="font-size:12px;color:var(--mt2);margin-top:6px;">Email : ' + amb.email + ' &nbsp;•&nbsp; Tel : ' + (amb.telephone||'—') + '</div>'
-    + '<div style="font-size:12px;color:var(--gr);margin-top:4px;">Commission totale : ' + (amb.commissions_total||0) + '€ &nbsp;•&nbsp; En attente : ' + (amb.commissions_en_attente||0) + '€</div>'
-    + '</div>' : '';
-  var orderRows = orders.map(function(o){
-    return '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;">'
-      + '<span style="color:var(--mt2);font-family:monospace;min-width:90px;">' + o.id + '</span>'
-      + '<span style="flex:1;color:#fff;">' + o.service + '</span>'
-      + '<span style="color:var(--or);font-weight:700;">' + o.montant + '€</span>'
-      + '<span style="color:var(--gr);margin-left:6px;">comm:' + o.commission + '€</span>'
-      + '<span style="color:var(--mt);font-size:10px;margin-left:6px;">' + new Date(o.date).toLocaleDateString('fr-FR') + '</span>'
-      + '</div>';
-  }).join('') || '<div style="font-size:12px;color:var(--mt);padding:8px;">Aucune commande liée à cet ambassadeur</div>';
-  res.innerHTML = ambInfo + '<div style="background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px;">'
-    + '<div style="font-size:12px;font-weight:700;color:var(--mt);text-transform:uppercase;margin-bottom:8px;">' + orders.length + ' commande(s) liée(s)</div>'
-    + orderRows + '</div>';
-}
-
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // ADMIN — EXPORT EXCEL (CSV compatible Excel)
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
