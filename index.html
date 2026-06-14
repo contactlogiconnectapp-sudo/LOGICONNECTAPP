@@ -8614,6 +8614,9 @@ function savePendingAnnonces(list) {
   if (db) {
     (list || []).forEach(function(a) {
       if (!a || !a.id) return;
+      // Ne pas écraser le statut si l'annonce a déjà été publiée ou rejetée
+      const st = String(a.statut || '').toLowerCase();
+      if (st === 'publie' || st === 'publiee' || st === 'rejete' || st === 'rejetee') return;
       try {
         const row = {
           ...a,
@@ -8643,6 +8646,8 @@ async function syncPendingAnnoncesFromSupabase() {
     }
     const remote = (data || []).filter(function(a) {
       const st = String(a && a.statut || '').toLowerCase();
+      // Exclure les annonces publiées ou rejetées — elles ne doivent pas revenir dans la liste d'attente
+      if (st === 'publie' || st === 'publiee' || st === 'rejete' || st === 'rejetee' || st === 'supprime') return false;
       return a && a.id && (st === 'en_attente_validation' || a.published === false || a.visible === false);
     });
     if (!remote.length) return loadPendingAnnonces();
@@ -8668,6 +8673,8 @@ function adminPublierAnnonce(id) {
   const idx = pending.findIndex(a => a.id === id);
   if (idx < 0) { showNotif('⚠️','Annonce introuvable',''); return; }
   const annonce = pending[idx];
+
+  // ✅ Marquer comme publiée
   annonce.statut = 'publie';
   annonce.published = true;
   annonce.visible = true;
@@ -8675,17 +8682,38 @@ function adminPublierAnnonce(id) {
   annonce.devise = lcCurrencyForListing(annonce);
   annonce.currency = annonce.devise;
   annonce.photo = annonce.photo || getListingPhoto(annonce);
-  // Ajouter dans les opérateurs visibles
+
+  // 1. Ajouter dans lc_operators (recherche locale)
   const ops = loadOperators();
   const existIdx = ops.findIndex(o => o.id === annonce.id);
   if (existIdx >= 0) { ops[existIdx] = annonce; } else { ops.push(annonce); }
-  saveOperators(ops);
-  // Retirer de la file d\'attente avant de rafraîchir les écrans
+  localStorage.setItem('lc_operators', JSON.stringify(ops));
+
+  // 2. Retirer de la liste d'attente
   pending.splice(idx, 1);
-  savePendingAnnonces(pending);
+  localStorage.setItem('lc_pending_annonces', JSON.stringify(pending));
+
+  // 3. ✅ Mettre à jour Supabase : statut publie + visible = true
+  if (db) {
+    try {
+      db.from('annonces')
+        .upsert([{
+          ...annonce,
+          statut: 'publie',
+          published: true,
+          visible: true
+        }], { onConflict: 'id' })
+        .then(function(res) {
+          if (res && res.error) console.warn('Supabase publication annonce:', res.error.message || res.error);
+        });
+    } catch(e) { console.warn('Supabase publication annonce:', e); }
+  }
+
+  // 4. Rafraîchir la liste de recherche
   operators = loadOperators();
   try { localStorage.setItem('lc_last_publish_refresh', String(Date.now())); } catch(e) {}
   try { filterCards._supaLoaded = true; filterCards(); } catch(e) {}
+
   showNotif('✅','Annonce publiée !','"' + annonce.name + '" est maintenant visible dans la recherche.');
   window._adminNav('annonces');
 }
@@ -8695,12 +8723,27 @@ function adminRejeterAnnonce(id) {
   const idx = pending.findIndex(a => a.id === id);
   if (idx < 0) return;
   const nom = pending[idx].name;
-  if (db) {
-    try { db.from('annonces').update({ statut: 'rejete', published: false, visible: false }).eq('id', id); } catch(e) { console.warn('Supabase rejet annonce:', e); }
-  }
+
+  // Retirer de la liste d'attente locale
   pending.splice(idx, 1);
-  savePendingAnnonces(pending);
-  showNotif('🗑️','Annonce rejetée','"' + nom + '" a été supprimée.');
+  localStorage.setItem('lc_pending_annonces', JSON.stringify(pending));
+
+  // ✅ Mettre à jour Supabase : marquer comme rejetée
+  if (db) {
+    try {
+      db.from('annonces')
+        .update({ statut: 'rejete', published: false, visible: false })
+        .eq('id', id)
+        .then(function(res) {
+          if (res && res.error) console.warn('Supabase rejet annonce:', res.error.message || res.error);
+        });
+    } catch(e) { console.warn('Supabase rejet annonce:', e); }
+  }
+
+  // Rafraîchir la recherche (l'annonce ne doit pas y apparaître)
+  try { filterCards._supaLoaded = true; filterCards(); } catch(e) {}
+
+  showNotif('🗑️','Annonce rejetée','"' + nom + '" a été supprimée de la liste d\'attente.');
   window._adminNav('annonces');
 }
 function adminDeleteAnnonce(id) {
