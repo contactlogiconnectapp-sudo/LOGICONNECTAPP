@@ -442,6 +442,41 @@ nav{position:fixed;top:56px;left:0;right:0;z-index:800;
 .f-opt span{font-size:13px;color:var(--mt2);}
 .f-opt:hover span{color:#fff;}
 .f-range{width:100%;accent-color:var(--or);margin-top:6px;}
+/* GEO FILTERS */
+.f-divider{height:1px;background:var(--bd);margin:12px 0;}
+.f-geo-sel{width:100%;background:var(--c2);border:1px solid var(--bd2);border-radius:8px;color:#fff;padding:7px 10px;font-size:12px;outline:none;margin-top:5px;cursor:pointer;}
+.f-geo-sel:focus{border-color:var(--or);}
+.f-geo-sel option{background:var(--c1);}
+.f-region-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.f-region-chip{padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid var(--bd2);cursor:pointer;background:var(--c2);color:var(--mt2);transition:all .15s;}
+.f-region-chip.on,.f-region-chip:hover{background:var(--or);color:#fff;border-color:var(--or);}
+.f-rating-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.f-rating-btn{background:var(--c2);border:1px solid var(--bd2);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;color:var(--mt2);transition:all .15s;}
+.f-rating-btn.on,.f-rating-btn:hover{background:var(--or);color:#fff;border-color:var(--or);}
+.f-reset-btn{width:100%;padding:7px;border-radius:8px;background:transparent;border:1px solid var(--bd2);font-size:11px;color:var(--mt2);cursor:pointer;transition:all .15s;margin-top:10px;}
+.f-reset-btn:hover{border-color:var(--or);color:var(--or);}
+/* TOOLBAR RÉSULTATS */
+.res-toolbar{display:flex;align-items:center;gap:8px;padding:12px 0 14px;flex-wrap:wrap;}
+.res-search-wrap{flex:1;min-width:120px;position:relative;display:flex;align-items:center;}
+.res-search-icon{position:absolute;left:9px;font-size:13px;pointer-events:none;}
+.res-search-inp{width:100%;background:var(--c2);border:1px solid var(--bd2);border-radius:8px;padding:7px 9px 7px 28px;color:#fff;font-size:12px;outline:none;}
+.res-search-inp:focus{border-color:var(--or);}
+.vt-btns{display:flex;border:1px solid var(--bd2);border-radius:8px;overflow:hidden;}
+.vt-btn{padding:6px 9px;background:var(--c2);border:none;cursor:pointer;color:var(--mt2);font-size:13px;transition:all .12s;}
+.vt-btn.on{background:var(--or);color:#fff;}
+/* ACTIVE TAGS */
+.f-active-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;min-height:0;}
+.f-active-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(255,77,0,.12);border:1px solid rgba(255,77,0,.3);color:var(--or);border-radius:999px;padding:3px 9px;font-size:10px;}
+.f-active-tag button{background:none;border:none;color:var(--or);cursor:pointer;font-size:14px;padding:0;line-height:1;}
+/* CARD GEO */
+.card-geo{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mt2);margin-bottom:7px;}
+.card-city{color:var(--mt3);font-weight:600;}
+.card-flag{position:absolute;top:8px;right:8px;font-size:17px;line-height:1;background:rgba(0,0,0,.38);padding:2px 5px;border-radius:5px;z-index:3;}
+/* LIST VIEW */
+.cards.list-view{grid-template-columns:1fr;}
+.cards.list-view .card{display:flex;flex-direction:row;}
+.cards.list-view .card-img{width:140px;height:auto;flex-shrink:0;min-height:110px;}
+.cards.list-view .card-body{flex:1;}
 .results{padding:28px;}
 .res-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .res-cnt{font-size:14px;color:var(--mt2);}
@@ -520,7 +555,7 @@ nav{position:fixed;top:56px;left:0;right:0;z-index:800;
   border-radius:12px;box-shadow:0 18px 46px rgba(0,0,0,.52);
   padding:10px;gap:10px;align-items:center;flex-wrap:wrap;
 }
-#page-search.on:not(.search-choice-active) .lc-booking-searchbar{display:flex;}
+#page-search.on:not(.search-choice-active) .lc-booking-searchbar{display:none!important;}
 .lc-booking-searchbar .lc-map-input-wrap{flex:1;min-width:220px;position:relative;}
 .lc-booking-searchbar input,.lc-booking-searchbar select{
   width:100%;background:#0D0D0D;border:1px solid #2A2A2A;border-radius:10px;
@@ -542,13 +577,71 @@ nav{position:fixed;top:56px;left:0;right:0;z-index:800;
 #page-search.search-map-active .lc-search-map-wrap{display:block;}
 #page-search.search-map-active .search-body,#page-search.search-map-active .mobile-filter-toggle{display:none!important;}
 #page-search.search-list-active .lc-search-map-wrap{display:none;}
-#page-search.search-list-active .search-body{padding-top:92px;}
+#page-search.search-list-active .search-body{padding-top:0;}
 .lc-map-loading{
   position:absolute;left:50%;bottom:22px;transform:translateX(-50%);
   z-index:500;background:rgba(13,13,13,.92);border:1px solid #2A2A2A;
   border-radius:999px;color:#fff;padding:10px 14px;font-size:12px;font-weight:800;
   box-shadow:0 12px 28px rgba(0,0,0,.35);display:none;
 }
+
+/* ── PANNEAU FILTRE FLOTTANT SUR LA CARTE ── */
+#lc-map-filter-panel{
+  position:absolute;top:16px;left:16px;z-index:500;
+  width:240px;
+  background:rgba(6,6,6,.96);
+  border:1px solid rgba(42,42,42,.95);
+  border-radius:14px;
+  box-shadow:0 18px 46px rgba(0,0,0,.55);
+  overflow:hidden;
+  transition:all .25s ease;
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+  display:none;
+}
+#page-search.search-map-active #lc-map-filter-panel{display:block;}
+#lc-map-filter-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;cursor:pointer;
+  border-bottom:1px solid #1E1E1E;
+  user-select:none;
+}
+#lc-map-filter-header-title{
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;
+  display:flex;align-items:center;gap:7px;
+}
+#lc-map-filter-toggle-icon{font-size:11px;color:#999;transition:transform .2s;}
+#lc-map-filter-panel.collapsed #lc-map-filter-toggle-icon{transform:rotate(180deg);}
+#lc-map-filter-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px;}
+#lc-map-filter-panel.collapsed #lc-map-filter-body{display:none;}
+.lc-mf-section-title{font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.lc-mf-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.lc-mf-chip{padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid #2A2A2A;cursor:pointer;background:#131313;color:#999;transition:all .15s;}
+.lc-mf-chip.on,.lc-mf-chip:hover{background:#FF4D00;color:#fff;border-color:#FF4D00;}
+.lc-mf-select{width:100%;background:#0D0D0D;border:1px solid #2A2A2A;border-radius:8px;color:#fff;padding:7px 10px;font-size:11px;outline:none;cursor:pointer;}
+.lc-mf-select:focus{border-color:#FF4D00;}
+.lc-mf-select option{background:#0D0D0D;}
+.lc-mf-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.lc-mf-checkbox{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#BBB;}
+.lc-mf-checkbox input{accent-color:#FF4D00;}
+.lc-mf-range{width:100%;accent-color:#FF4D00;margin-top:4px;}
+.lc-mf-price-lbl{font-size:10px;color:#666;margin-top:3px;}
+.lc-mf-rating-row{display:flex;gap:4px;flex-wrap:wrap;}
+.lc-mf-rating-btn{background:#131313;border:1px solid #2A2A2A;border-radius:6px;padding:3px 8px;font-size:10px;cursor:pointer;color:#999;transition:all .15s;}
+.lc-mf-rating-btn.on,.lc-mf-rating-btn:hover{background:#FF4D00;color:#fff;border-color:#FF4D00;}
+.lc-mf-reset{width:100%;padding:7px;border-radius:8px;background:transparent;border:1px solid #2A2A2A;font-size:10px;color:#666;cursor:pointer;transition:all .15s;margin-top:2px;}
+.lc-mf-reset:hover{border-color:#FF4D00;color:#FF4D00;}
+.lc-mf-count-badge{background:#FF4D00;color:#fff;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:900;font-family:'Syne',sans-serif;}
+.lc-mf-search-wrap{position:relative;}
+.lc-mf-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;}
+.lc-mf-search-inp{width:100%;background:#0D0D0D;border:1px solid #2A2A2A;border-radius:8px;color:#fff;padding:7px 9px 7px 28px;font-size:11px;outline:none;}
+.lc-mf-search-inp:focus{border-color:#FF4D00;}
+.lc-mf-divider{height:1px;background:#1E1E1E;margin:2px 0;}
+@media(max-width:768px){
+  #lc-map-filter-panel{width:calc(100vw - 32px);top:12px;left:16px;}
+  #lc-map-filter-panel.collapsed{width:auto;}
+}
+/* ── FIN PANNEAU FILTRE CARTE ── */
 .lc-map-marker{position:relative;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;}
 .lc-map-pin{
   width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -604,7 +697,7 @@ body.lc-home-active #nav-dashboard-btn{display:none!important;}
   .lc-booking-searchbar button{flex:1;padding:11px 10px;}
   .lc-booking-searchbar .lc-map-counter{width:100%;text-align:center;}
   .lc-search-map-wrap{height:calc(100dvh - 72px);min-height:500px;}
-  #page-search.search-list-active .search-body{padding-top:186px;}
+  #page-search.search-list-active .search-body{padding-top:0;}
   .lc-booking-popup .leaflet-popup-content{width:min(320px,calc(100vw - 34px))!important;}
   .leaflet-popup{max-width:calc(100vw - 22px);}
 }
@@ -3567,84 +3660,736 @@ goPage = function goPage(name, btn) {
 
 <!-- â•â•â•â• PAGE SEARCH â•â•â•â• -->
 <div id="page-search" class="page">
-  <div class="lc-search-choice" id="lc-search-choice">
+
+<!-- ═══════ STYLES ONBOARDING VISUEL ═══════ -->
+<style>
+#lc-onboard-overlay{position:fixed;inset:0;z-index:850;background:#050505;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px 16px;}
+#lc-onboard-overlay.lc-ob-hidden{display:none!important;}
+.lc-ob-wrap{width:min(880px,100%);animation:popIn .45s cubic-bezier(.22,.68,0,1.3) both;}
+.lc-ob-progress{display:flex;align-items:center;gap:10px;margin-bottom:36px;justify-content:center;}
+.lc-ob-dot{width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.1);transition:all .4s;}
+.lc-ob-dot.active{background:var(--or);box-shadow:0 0 14px rgba(255,77,0,.7);}
+.lc-ob-dot.done{background:var(--gr);}
+.lc-ob-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,77,0,.1);border:1px solid rgba(255,77,0,.3);color:var(--or);border-radius:999px;padding:7px 14px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+.lc-ob-title{font-family:"Syne",sans-serif;font-size:clamp(24px,4.5vw,40px);font-weight:900;color:#fff;line-height:1.06;margin-bottom:10px;}
+.lc-ob-title span{color:var(--or);}
+.lc-ob-sub{color:var(--mt2);font-size:14px;line-height:1.65;margin-bottom:28px;max-width:580px;}
+.lc-ob-path{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px;margin-bottom:20px;}
+.lc-ob-crumb{display:flex;align-items:center;gap:6px;background:rgba(255,77,0,.1);border:1px solid rgba(255,77,0,.3);color:var(--or);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;}
+.lc-ob-sep{color:var(--mt);font-size:16px;}
+.lc-ob-grid{display:grid;gap:14px;margin-bottom:24px;}
+.lc-ob-grid.g2{grid-template-columns:repeat(2,1fr);}
+.lc-ob-grid.g3{grid-template-columns:repeat(3,1fr);}
+.lc-ob-grid.g4{grid-template-columns:repeat(4,1fr);}
+.lc-ob-card{position:relative;background:#0e0e0e;border:1.5px solid #1e1e1e;border-radius:18px;padding:22px 18px;cursor:pointer;transition:all .22s cubic-bezier(.22,.68,0,1.2);text-align:left;overflow:hidden;}
+.lc-ob-card::after{content:"";position:absolute;inset:0;border-radius:17px;background:radial-gradient(circle at 30% 20%,rgba(255,77,0,.09) 0%,transparent 65%);opacity:0;transition:opacity .3s;}
+.lc-ob-card:hover{border-color:var(--or);transform:translateY(-4px);box-shadow:0 18px 48px rgba(255,77,0,.18);}
+.lc-ob-card:hover::after{opacity:1;}
+.lc-ob-card:active{transform:scale(.97);}
+.lc-ob-card.bl:hover{border-color:var(--bl);box-shadow:0 18px 48px rgba(0,153,255,.18);}
+.lc-ob-card.bl::after{background:radial-gradient(circle at 30% 20%,rgba(0,153,255,.09) 0%,transparent 65%);}
+.lc-ob-card.gr:hover{border-color:var(--gr);box-shadow:0 18px 48px rgba(0,230,118,.15);}
+.lc-ob-card.gr::after{background:radial-gradient(circle at 30% 20%,rgba(0,230,118,.08) 0%,transparent 65%);}
+.lc-ob-card.primary{background:linear-gradient(135deg,rgba(255,77,0,.12),rgba(255,119,26,.05));border-color:rgba(255,77,0,.4);}
+.lc-ob-ic{font-size:36px;margin-bottom:12px;display:block;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));}
+.lc-ob-card-t{font-family:"Syne",sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:5px;line-height:1.2;}
+.lc-ob-card-d{font-size:11px;color:var(--mt2);line-height:1.5;}
+.lc-ob-badge{position:absolute;top:12px;right:12px;background:rgba(255,77,0,.15);border:1px solid rgba(255,77,0,.3);color:var(--or);border-radius:999px;padding:3px 8px;font-size:9px;font-weight:900;text-transform:uppercase;}
+.lc-ob-count{display:inline-flex;align-items:center;gap:8px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);color:var(--gr);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;margin-bottom:24px;}
+.lc-ob-dot-live{width:7px;height:7px;border-radius:50%;background:var(--gr);box-shadow:0 0 10px rgba(0,230,118,.7);animation:blink 1.4s infinite;}
+.lc-ob-back{background:none;border:1px solid var(--bd2);color:var(--mt2);padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.lc-ob-back:hover{color:#fff;border-color:var(--mt);}
+.lc-ob-mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px;}
+.lc-ob-mode-btn{background:#111;border:1.5px solid #1e1e1e;border-radius:14px;padding:22px;text-align:center;cursor:pointer;transition:all .22s;color:#fff;}
+.lc-ob-mode-btn:hover{border-color:var(--or);background:rgba(255,77,0,.08);transform:translateY(-3px);}
+.lc-ob-or{text-align:center;color:var(--mt);font-size:12px;font-weight:700;margin:18px 0;position:relative;letter-spacing:1px;}
+.lc-ob-or::before,.lc-ob-or::after{content:"";position:absolute;top:50%;width:calc(50% - 22px);height:1px;background:var(--bd2);}
+.lc-ob-or::before{left:0;}.lc-ob-or::after{right:0;}
+@keyframes lc-slide-in{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes lc-slide-back{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+.lc-ob-in{animation:lc-slide-in .32s cubic-bezier(.22,.68,0,1.1) both;}
+.lc-ob-bk{animation:lc-slide-back .32s cubic-bezier(.22,.68,0,1.1) both;}
+@media(max-width:620px){.lc-ob-grid.g3,.lc-ob-grid.g4{grid-template-columns:repeat(2,1fr);}.lc-ob-mode-grid{grid-template-columns:1fr;}.lc-ob-card{padding:14px 12px;}.lc-ob-ic{font-size:26px;}}
+@media(max-width:380px){.lc-ob-grid.g2{grid-template-columns:1fr;}}
+</style>
+
+<!-- ══ OVERLAY ONBOARDING ══ -->
+<div id="lc-onboard-overlay">
+  <div class="lc-ob-wrap">
+    <div class="lc-ob-progress">
+      <div class="lc-ob-dot active" id="lc-ob-d1"></div>
+      <div class="lc-ob-dot" id="lc-ob-d2"></div>
+      <div class="lc-ob-dot" id="lc-ob-d3"></div>
+    </div>
+    <div class="lc-ob-path" id="lc-ob-path"></div>
+    <div id="lc-ob-content"></div>
+  </div>
+</div>
+
+  <!-- Ancienne div gardée pour compatibilité CSS interne -->
+  <div class="lc-search-choice" id="lc-search-choice" style="display:none!important;">
     <div class="lc-search-choice-card">
       <div class="lc-choice-eyebrow">Recherche LogiConnect</div>
       <h2>Choisissez votre mode de recherche</h2>
-      <p>Vous pouvez chercher une annonce directement sur la carte avec les prix affichés, ou garder l'ancienne liste classique des annonces.</p>
       <div class="lc-choice-actions">
-        <button type="button" class="lc-choice-btn primary" onclick="lcChooseSearchMode('map')">
-          <div class="lc-choice-ic">🗺️</div>
-          <div class="lc-choice-title">Chercher par carte</div>
-          <div class="lc-choice-text">La carte s'ouvre avec les annonces publiées, les prix et le bouton Réserver sur chaque popup.</div>
-        </button>
-        <button type="button" class="lc-choice-btn" onclick="lcChooseSearchMode('list')">
-          <div class="lc-choice-ic">📋</div>
-          <div class="lc-choice-title">Chercher par liste</div>
-          <div class="lc-choice-text">Retour à l'ancienne liste avec les filtres, les cards et le même processus de réservation.</div>
-        </button>
+        <button type="button" class="lc-choice-btn primary" onclick="lcChooseSearchMode('map')"><div class="lc-choice-ic">🗺️</div><div class="lc-choice-title">Chercher par carte</div></button>
+        <button type="button" class="lc-choice-btn" onclick="lcChooseSearchMode('list')"><div class="lc-choice-ic">📋</div><div class="lc-choice-title">Chercher par liste</div></button>
       </div>
       <div class="lc-choice-note"><b id="lc-choice-count">0</b> annonces publiées disponibles. Les annonces en attente admin restent cachées.</div>
     </div>
   </div>
-  <div class="lc-booking-searchbar" id="lc-map-searchbar">
-    <div class="lc-map-input-wrap"><span>📍</span><input id="lc-map-query" type="text" placeholder="Ville, pays, région..." oninput="lcMapSearchChanged()" onkeydown="if(event.key==='Enter') lcCenterMapOnSearch();"></div>
-    <select id="lc-map-type" onchange="lcMapSearchChanged()">
-      <option value="">Tous</option>
-      <option value="st">🏭 Stockage</option>
-      <option value="tr">🚚 Transport</option>
-    </select>
-    <button type="button" onclick="lcLocateMe()">📍 Me localiser</button>
-      <button type="button" class="lc-map-toggle" id="lc-map-toggle" onclick="lcToggleSearchView()">🗺️ Carte</button>
-    <div class="lc-map-counter"><b id="lc-map-count">0</b> annonces</div>
+  <!-- Barre de recherche horizontale supprimée — filtrage uniquement via sidebar verticale -->
+  <div id="lc-map-searchbar" style="display:none!important;">
+    <input id="lc-map-query" type="hidden">
+    <select id="lc-map-type" style="display:none"></select>
+    <span id="lc-map-count" style="display:none">0</span>
   </div>
   <div class="lc-search-map-wrap" id="lc-search-map-wrap">
     <div id="lc-search-map"></div>
     <div class="lc-map-loading" id="lc-map-loading">Chargement de la carte...</div>
-  </div>
-  <div class="container">
-    <div class="search-hero">
-      <h1>🔍 Trouver un service logistique</h1>
-      <p style="color:var(--mt2);font-size:14px;margin-top:4px;">Transporteurs et espaces de stockage disponibles partout dans le monde</p>
-      <div class="sbar">
-        <div class="sinp"><span class="ic">📍</span><input id="search-loc" type="text" placeholder="Ville, pays, région..." oninput="filterCards()" style=""></div>
-        <select class="ssel" id="search-type" onchange="filterCards()">
-          <option value="">Tous les services</option>
-          <option value="st">🏭 Stockage</option>
-          <option value="tr">🚚 Transport</option>
-        </select>
-        <button class="btn-srch" onclick="filterCards()">🔍 Rechercher</button>
+
+    <!-- ═══════ PANNEAU FILTRE FLOTTANT CARTE ═══════ -->
+    <div id="lc-map-filter-panel">
+      <div id="lc-map-filter-header" onclick="lcMapFilterToggleCollapse()">
+        <div id="lc-map-filter-header-title">
+          🔍 Filtres
+          <span class="lc-mf-count-badge" id="lc-mf-count-badge">0</span>
+        </div>
+        <span id="lc-map-filter-toggle-icon">▲</span>
+      </div>
+      <div id="lc-map-filter-body">
+        <!-- Recherche texte -->
+        <div>
+          <div class="lc-mf-section-title">Rechercher</div>
+          <div class="lc-mf-search-wrap">
+            <span class="lc-mf-search-icon">🔍</span>
+            <input class="lc-mf-search-inp" id="lc-mf-query" type="text" placeholder="Lieu, nom..." oninput="lcMapPanelChanged()">
+          </div>
+        </div>
+        <div class="lc-mf-divider"></div>
+        <!-- Région -->
+        <div>
+          <div class="lc-mf-section-title">🌍 Région</div>
+          <div class="lc-mf-chips">
+            <span class="lc-mf-chip on" data-region="" onclick="lcMapPanelSetRegion(this)">Tout</span>
+            <span class="lc-mf-chip" data-region="afrique" onclick="lcMapPanelSetRegion(this)">Afrique</span>
+            <span class="lc-mf-chip" data-region="europe" onclick="lcMapPanelSetRegion(this)">Europe</span>
+            <span class="lc-mf-chip" data-region="asie" onclick="lcMapPanelSetRegion(this)">Asie</span>
+            <span class="lc-mf-chip" data-region="amerique" onclick="lcMapPanelSetRegion(this)">Amér.</span>
+            <span class="lc-mf-chip" data-region="moyen-orient" onclick="lcMapPanelSetRegion(this)">M-Or.</span>
+          </div>
+        </div>
+        <!-- Pays -->
+        <div>
+          <div class="lc-mf-section-title">🏳️ Pays</div>
+          <select class="lc-mf-select" id="lc-mf-country" onchange="lcMapPanelCountryChanged()">
+            <option value="">Tous les pays</option>
+          </select>
+        </div>
+        <!-- Ville -->
+        <div>
+          <div class="lc-mf-section-title">🏙️ Ville</div>
+          <select class="lc-mf-select" id="lc-mf-city" onchange="lcMapPanelChanged()">
+            <option value="">Toutes les villes</option>
+          </select>
+        </div>
+        <div class="lc-mf-divider"></div>
+        <!-- Type de service -->
+        <div>
+          <div class="lc-mf-section-title">Type de service</div>
+          <div class="lc-mf-row">
+            <label class="lc-mf-checkbox"><input type="checkbox" id="lc-mf-st" checked onchange="lcMapPanelChanged()"> 🏭 Stockage</label>
+            <label class="lc-mf-checkbox"><input type="checkbox" id="lc-mf-tr" checked onchange="lcMapPanelChanged()"> 🚚 Transport</label>
+          </div>
+        </div>
+        <!-- Prix max -->
+        <div>
+          <div class="lc-mf-section-title">Prix max</div>
+          <input type="range" class="lc-mf-range" id="lc-mf-price" min="0" max="10000000" value="10000000"
+            oninput="document.getElementById('lc-mf-price-lbl').textContent='Max '+parseInt(this.value).toLocaleString()+' €';lcMapPanelChanged()">
+          <div class="lc-mf-price-lbl" id="lc-mf-price-lbl">Max 10 000 000 €</div>
+        </div>
+        <!-- Note min -->
+        <div>
+          <div class="lc-mf-section-title">Note minimale</div>
+          <div class="lc-mf-rating-row">
+            <button class="lc-mf-rating-btn on" data-r="0" onclick="lcMapPanelSetRating(0,this)">Toutes</button>
+            <button class="lc-mf-rating-btn" data-r="4" onclick="lcMapPanelSetRating(4,this)">★ 4+</button>
+            <button class="lc-mf-rating-btn" data-r="4.5" onclick="lcMapPanelSetRating(4.5,this)">★ 4.5+</button>
+          </div>
+        </div>
+        <!-- Tri -->
+        <div>
+          <div class="lc-mf-section-title">Trier par</div>
+          <select class="lc-mf-select" id="lc-mf-sort" onchange="lcMapPanelChanged()">
+            <option value="def">Pertinence</option>
+            <option value="asc">Prix ↑</option>
+            <option value="desc">Prix ↓</option>
+            <option value="rating">Mieux notés</option>
+            <option value="new">Plus récents</option>
+          </select>
+        </div>
+        <button class="lc-mf-reset" onclick="lcMapPanelReset()">↺ Réinitialiser les filtres</button>
       </div>
     </div>
+    <!-- ═══════ FIN PANNEAU FILTRE CARTE ═══════ -->
   </div>
+  
   <button class="mobile-filter-toggle" onclick="this.nextElementSibling.classList.toggle('filters-open');this.classList.toggle('on');this.querySelector('[data-filter-label]').textContent=this.classList.contains('on')?'Filtres ▲':'Filtres ▼';">
     <span data-filter-label>Filtres ▼</span>
   </button>
   <div class="search-body">
     <div class="filters">
+      <!-- RÉGION -->
+      <div class="f-sec">
+        <div class="f-sec-title">🌍 Région du monde</div>
+        <div class="f-region-chips">
+          <span class="f-region-chip on" data-region="" onclick="lcSetRegion(this)">Tout</span>
+          <span class="f-region-chip" data-region="afrique" onclick="lcSetRegion(this)">Afrique</span>
+          <span class="f-region-chip" data-region="europe" onclick="lcSetRegion(this)">Europe</span>
+          <span class="f-region-chip" data-region="asie" onclick="lcSetRegion(this)">Asie</span>
+          <span class="f-region-chip" data-region="amerique" onclick="lcSetRegion(this)">Amérique</span>
+          <span class="f-region-chip" data-region="moyen-orient" onclick="lcSetRegion(this)">M-Orient</span>
+        </div>
+      </div>
+      <!-- PAYS -->
+      <div class="f-sec">
+        <div class="f-sec-title">🏳️ Pays</div>
+        <select class="f-geo-sel" id="f-country" onchange="lcOnCountryChange()">
+          <option value="">Tous les pays</option>
+          <optgroup label="🌍 Afrique">
+            <option value="Afrique du Sud">🇿🇦 Afrique du Sud</option>
+            <option value="Algérie">🇩🇿 Algérie</option>
+            <option value="Angola">🇦🇴 Angola</option>
+            <option value="Bénin">🇧🇯 Bénin</option>
+            <option value="Botswana">🇧🇼 Botswana</option>
+            <option value="Burkina Faso">🇧🇫 Burkina Faso</option>
+            <option value="Burundi">🇧🇮 Burundi</option>
+            <option value="Cameroun">🇨🇲 Cameroun</option>
+            <option value="Cap-Vert">🇨🇻 Cap-Vert</option>
+            <option value="Comores">🇰🇲 Comores</option>
+            <option value="Congo">🇨🇬 Congo</option>
+            <option value="Côte d'Ivoire">🇨🇮 Côte d'Ivoire</option>
+            <option value="Djibouti">🇩🇯 Djibouti</option>
+            <option value="Égypte">🇪🇬 Égypte</option>
+            <option value="Érythrée">🇪🇷 Érythrée</option>
+            <option value="Éthiopie">🇪🇹 Éthiopie</option>
+            <option value="Gabon">🇬🇦 Gabon</option>
+            <option value="Gambie">🇬🇲 Gambie</option>
+            <option value="Ghana">🇬🇭 Ghana</option>
+            <option value="Guinée">🇬🇳 Guinée</option>
+            <option value="Guinée-Bissau">🇬🇼 Guinée-Bissau</option>
+            <option value="Guinée équatoriale">🇬🇶 Guinée équatoriale</option>
+            <option value="Kenya">🇰🇪 Kenya</option>
+            <option value="Lesotho">🇱🇸 Lesotho</option>
+            <option value="Liberia">🇱🇷 Liberia</option>
+            <option value="Libye">🇱🇾 Libye</option>
+            <option value="Madagascar">🇲🇬 Madagascar</option>
+            <option value="Malawi">🇲🇼 Malawi</option>
+            <option value="Mali">🇲🇱 Mali</option>
+            <option value="Maroc">🇲🇦 Maroc</option>
+            <option value="Maurice">🇲🇺 Maurice</option>
+            <option value="Mauritanie">🇲🇷 Mauritanie</option>
+            <option value="Mozambique">🇲🇿 Mozambique</option>
+            <option value="Namibie">🇳🇦 Namibie</option>
+            <option value="Niger">🇳🇪 Niger</option>
+            <option value="Nigeria">🇳🇬 Nigeria</option>
+            <option value="Ouganda">🇺🇬 Ouganda</option>
+            <option value="RD Congo">🇨🇩 RD Congo</option>
+            <option value="Rwanda">🇷🇼 Rwanda</option>
+            <option value="São Tomé-et-Príncipe">🇸🇹 São Tomé-et-Príncipe</option>
+            <option value="Sénégal">🇸🇳 Sénégal</option>
+            <option value="Seychelles">🇸🇨 Seychelles</option>
+            <option value="Sierra Leone">🇸🇱 Sierra Leone</option>
+            <option value="Somalie">🇸🇴 Somalie</option>
+            <option value="Soudan">🇸🇩 Soudan</option>
+            <option value="Soudan du Sud">🇸🇸 Soudan du Sud</option>
+            <option value="Swaziland">🇸🇿 Swaziland</option>
+            <option value="Tanzanie">🇹🇿 Tanzanie</option>
+            <option value="Tchad">🇹🇩 Tchad</option>
+            <option value="Togo">🇹🇬 Togo</option>
+            <option value="Tunisie">🇹🇳 Tunisie</option>
+            <option value="Zambie">🇿🇲 Zambie</option>
+            <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
+          </optgroup>
+          <optgroup label="🌍 Moyen-Orient">
+            <option value="Arabie Saoudite">🇸🇦 Arabie Saoudite</option>
+            <option value="Bahreïn">🇧🇭 Bahreïn</option>
+            <option value="Émirats Arabes Unis">🇦🇪 Émirats Arabes Unis</option>
+            <option value="Irak">🇮🇶 Irak</option>
+            <option value="Iran">🇮🇷 Iran</option>
+            <option value="Israël">🇮🇱 Israël</option>
+            <option value="Jordanie">🇯🇴 Jordanie</option>
+            <option value="Koweït">🇰🇼 Koweït</option>
+            <option value="Liban">🇱🇧 Liban</option>
+            <option value="Oman">🇴🇲 Oman</option>
+            <option value="Palestine">🇵🇸 Palestine</option>
+            <option value="Qatar">🇶🇦 Qatar</option>
+            <option value="Syrie">🇸🇾 Syrie</option>
+            <option value="Turquie">🇹🇷 Turquie</option>
+            <option value="Yémen">🇾🇪 Yémen</option>
+          </optgroup>
+          <optgroup label="🌍 Europe">
+            <option value="Albanie">🇦🇱 Albanie</option>
+            <option value="Allemagne">🇩🇪 Allemagne</option>
+            <option value="Andorre">🇦🇩 Andorre</option>
+            <option value="Autriche">🇦🇹 Autriche</option>
+            <option value="Belgique">🇧🇪 Belgique</option>
+            <option value="Biélorussie">🇧🇾 Biélorussie</option>
+            <option value="Bosnie-Herzégovine">🇧🇦 Bosnie-Herzégovine</option>
+            <option value="Bulgarie">🇧🇬 Bulgarie</option>
+            <option value="Chypre">🇨🇾 Chypre</option>
+            <option value="Croatie">🇭🇷 Croatie</option>
+            <option value="Danemark">🇩🇰 Danemark</option>
+            <option value="Espagne">🇪🇸 Espagne</option>
+            <option value="Estonie">🇪🇪 Estonie</option>
+            <option value="Finlande">🇫🇮 Finlande</option>
+            <option value="France">🇫🇷 France</option>
+            <option value="Grèce">🇬🇷 Grèce</option>
+            <option value="Hongrie">🇭🇺 Hongrie</option>
+            <option value="Irlande">🇮🇪 Irlande</option>
+            <option value="Islande">🇮🇸 Islande</option>
+            <option value="Italie">🇮🇹 Italie</option>
+            <option value="Kosovo">🇽🇰 Kosovo</option>
+            <option value="Lettonie">🇱🇻 Lettonie</option>
+            <option value="Liechtenstein">🇱🇮 Liechtenstein</option>
+            <option value="Lituanie">🇱🇹 Lituanie</option>
+            <option value="Luxembourg">🇱🇺 Luxembourg</option>
+            <option value="Macédoine du Nord">🇲🇰 Macédoine du Nord</option>
+            <option value="Malte">🇲🇹 Malte</option>
+            <option value="Moldavie">🇲🇩 Moldavie</option>
+            <option value="Monaco">🇲🇨 Monaco</option>
+            <option value="Monténégro">🇲🇪 Monténégro</option>
+            <option value="Norvège">🇳🇴 Norvège</option>
+            <option value="Pays-Bas">🇳🇱 Pays-Bas</option>
+            <option value="Pologne">🇵🇱 Pologne</option>
+            <option value="Portugal">🇵🇹 Portugal</option>
+            <option value="Roumanie">🇷🇴 Roumanie</option>
+            <option value="Royaume-Uni">🇬🇧 Royaume-Uni</option>
+            <option value="Russie">🇷🇺 Russie</option>
+            <option value="Saint-Marin">🇸🇲 Saint-Marin</option>
+            <option value="Serbie">🇷🇸 Serbie</option>
+            <option value="Slovaquie">🇸🇰 Slovaquie</option>
+            <option value="Slovénie">🇸🇮 Slovénie</option>
+            <option value="Suède">🇸🇪 Suède</option>
+            <option value="Suisse">🇨🇭 Suisse</option>
+            <option value="Tchéquie">🇨🇿 Tchéquie</option>
+            <option value="Ukraine">🇺🇦 Ukraine</option>
+          </optgroup>
+          <optgroup label="🌏 Asie">
+            <option value="Afghanistan">🇦🇫 Afghanistan</option>
+            <option value="Bangladesh">🇧🇩 Bangladesh</option>
+            <option value="Bhoutan">🇧🇹 Bhoutan</option>
+            <option value="Brunei">🇧🇳 Brunei</option>
+            <option value="Cambodge">🇰🇭 Cambodge</option>
+            <option value="Chine">🇨🇳 Chine</option>
+            <option value="Corée du Nord">🇰🇵 Corée du Nord</option>
+            <option value="Corée du Sud">🇰🇷 Corée du Sud</option>
+            <option value="Géorgie">🇬🇪 Géorgie</option>
+            <option value="Inde">🇮🇳 Inde</option>
+            <option value="Indonésie">🇮🇩 Indonésie</option>
+            <option value="Japon">🇯🇵 Japon</option>
+            <option value="Kazakhstan">🇰🇿 Kazakhstan</option>
+            <option value="Kirghizstan">🇰🇬 Kirghizstan</option>
+            <option value="Laos">🇱🇦 Laos</option>
+            <option value="Malaisie">🇲🇾 Malaisie</option>
+            <option value="Maldives">🇲🇻 Maldives</option>
+            <option value="Mongolie">🇲🇳 Mongolie</option>
+            <option value="Myanmar">🇲🇲 Myanmar</option>
+            <option value="Népal">🇳🇵 Népal</option>
+            <option value="Ouzbékistan">🇺🇿 Ouzbékistan</option>
+            <option value="Pakistan">🇵🇰 Pakistan</option>
+            <option value="Philippines">🇵🇭 Philippines</option>
+            <option value="Singapour">🇸🇬 Singapour</option>
+            <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+            <option value="Tadjikistan">🇹🇯 Tadjikistan</option>
+            <option value="Taïwan">🇹🇼 Taïwan</option>
+            <option value="Thaïlande">🇹🇭 Thaïlande</option>
+            <option value="Timor oriental">🇹🇱 Timor oriental</option>
+            <option value="Turkménistan">🇹🇲 Turkménistan</option>
+            <option value="Vietnam">🇻🇳 Vietnam</option>
+          </optgroup>
+          <optgroup label="🌎 Amériques">
+            <option value="Argentine">🇦🇷 Argentine</option>
+            <option value="Bahamas">🇧🇸 Bahamas</option>
+            <option value="Barbade">🇧🇧 Barbade</option>
+            <option value="Belize">🇧🇿 Belize</option>
+            <option value="Bolivie">🇧🇴 Bolivie</option>
+            <option value="Brésil">🇧🇷 Brésil</option>
+            <option value="Canada">🇨🇦 Canada</option>
+            <option value="Chili">🇨🇱 Chili</option>
+            <option value="Colombie">🇨🇴 Colombie</option>
+            <option value="Costa Rica">🇨🇷 Costa Rica</option>
+            <option value="Cuba">🇨🇺 Cuba</option>
+            <option value="Équateur">🇪🇨 Équateur</option>
+            <option value="États-Unis">🇺🇸 États-Unis</option>
+            <option value="Guatemala">🇬🇹 Guatemala</option>
+            <option value="Guyana">🇬🇾 Guyana</option>
+            <option value="Haïti">🇭🇹 Haïti</option>
+            <option value="Honduras">🇭🇳 Honduras</option>
+            <option value="Jamaïque">🇯🇲 Jamaïque</option>
+            <option value="Mexique">🇲🇽 Mexique</option>
+            <option value="Nicaragua">🇳🇮 Nicaragua</option>
+            <option value="Panama">🇵🇦 Panama</option>
+            <option value="Paraguay">🇵🇾 Paraguay</option>
+            <option value="Pérou">🇵🇪 Pérou</option>
+            <option value="République dominicaine">🇩🇴 République dominicaine</option>
+            <option value="Salvador">🇸🇻 Salvador</option>
+            <option value="Suriname">🇸🇷 Suriname</option>
+            <option value="Trinidad-et-Tobago">🇹🇹 Trinidad-et-Tobago</option>
+            <option value="Uruguay">🇺🇾 Uruguay</option>
+            <option value="Venezuela">🇻🇪 Venezuela</option>
+          </optgroup>
+          <optgroup label="🌏 Océanie">
+            <option value="Australie">🇦🇺 Australie</option>
+            <option value="Fidji">🇫🇯 Fidji</option>
+            <option value="Kiribati">🇰🇮 Kiribati</option>
+            <option value="Nouvelle-Zélande">🇳🇿 Nouvelle-Zélande</option>
+            <option value="Papouasie-Nouvelle-Guinée">🇵🇬 Papouasie-Nouvelle-Guinée</option>
+            <option value="Samoa">🇼🇸 Samoa</option>
+            <option value="Tonga">🇹🇴 Tonga</option>
+            <option value="Vanuatu">🇻🇺 Vanuatu</option>
+          </optgroup>
+        </select>
+      </div>
+      <!-- VILLE -->
+      <div class="f-sec">
+        <div class="f-sec-title">🏙️ Ville</div>
+        <select class="f-geo-sel" id="f-city" onchange="filterCards()">
+          <option value="">Toutes les villes</option>
+          <optgroup label="🇲🇦 Maroc">
+            <option value="Agadir">Agadir</option>
+            <option value="Beni Mellal">Beni Mellal</option>
+            <option value="Casablanca">Casablanca</option>
+            <option value="El Jadida">El Jadida</option>
+            <option value="Fès">Fès</option>
+            <option value="Kénitra">Kénitra</option>
+            <option value="Laâyoune">Laâyoune</option>
+            <option value="Marrakech">Marrakech</option>
+            <option value="Meknès">Meknès</option>
+            <option value="Mohammedia">Mohammedia</option>
+            <option value="Nador">Nador</option>
+            <option value="Oujda">Oujda</option>
+            <option value="Rabat">Rabat</option>
+            <option value="Safi">Safi</option>
+            <option value="Salé">Salé</option>
+            <option value="Tanger">Tanger</option>
+            <option value="Tétouan">Tétouan</option>
+          </optgroup>
+          <optgroup label="🇩🇿 Algérie">
+            <option value="Alger">Alger</option>
+            <option value="Annaba">Annaba</option>
+            <option value="Constantine">Constantine</option>
+            <option value="Oran">Oran</option>
+            <option value="Sétif">Sétif</option>
+            <option value="Tlemcen">Tlemcen</option>
+          </optgroup>
+          <optgroup label="🇹🇳 Tunisie">
+            <option value="Bizerte">Bizerte</option>
+            <option value="Gabès">Gabès</option>
+            <option value="Sfax">Sfax</option>
+            <option value="Sousse">Sousse</option>
+            <option value="Tunis">Tunis</option>
+          </optgroup>
+          <optgroup label="🇪🇬 Égypte">
+            <option value="Alexandrie">Alexandrie</option>
+            <option value="Assouan">Assouan</option>
+            <option value="Le Caire">Le Caire</option>
+            <option value="Louxor">Louxor</option>
+            <option value="Port-Saïd">Port-Saïd</option>
+          </optgroup>
+          <optgroup label="🇳🇬 Nigeria">
+            <option value="Abuja">Abuja</option>
+            <option value="Ibadan">Ibadan</option>
+            <option value="Kano">Kano</option>
+            <option value="Lagos">Lagos</option>
+            <option value="Port Harcourt">Port Harcourt</option>
+          </optgroup>
+          <optgroup label="🇿🇦 Afrique du Sud">
+            <option value="Cape Town">Cape Town</option>
+            <option value="Durban">Durban</option>
+            <option value="Johannesburg">Johannesburg</option>
+            <option value="Port Elizabeth">Port Elizabeth</option>
+            <option value="Pretoria">Pretoria</option>
+          </optgroup>
+          <optgroup label="🇸🇳 Sénégal">
+            <option value="Dakar">Dakar</option>
+            <option value="Saint-Louis">Saint-Louis</option>
+            <option value="Thiès">Thiès</option>
+            <option value="Touba">Touba</option>
+          </optgroup>
+          <optgroup label="🇨🇮 Côte d'Ivoire">
+            <option value="Abidjan">Abidjan</option>
+            <option value="Bouaké">Bouaké</option>
+            <option value="Yamoussoukro">Yamoussoukro</option>
+          </optgroup>
+          <optgroup label="🇨🇲 Cameroun">
+            <option value="Douala">Douala</option>
+            <option value="Garoua">Garoua</option>
+            <option value="Yaoundé">Yaoundé</option>
+          </optgroup>
+          <optgroup label="🇰🇪 Kenya">
+            <option value="Kisumu">Kisumu</option>
+            <option value="Mombasa">Mombasa</option>
+            <option value="Nairobi">Nairobi</option>
+          </optgroup>
+          <optgroup label="🇪🇹 Éthiopie">
+            <option value="Addis-Abeba">Addis-Abeba</option>
+            <option value="Dire Dawa">Dire Dawa</option>
+            <option value="Gondar">Gondar</option>
+          </optgroup>
+          <optgroup label="🇬🇭 Ghana">
+            <option value="Accra">Accra</option>
+            <option value="Kumasi">Kumasi</option>
+            <option value="Takoradi">Takoradi</option>
+          </optgroup>
+          <optgroup label="🇦🇪 Émirats Arabes Unis">
+            <option value="Abu Dhabi">Abu Dhabi</option>
+            <option value="Charjah">Charjah</option>
+            <option value="Dubaï">Dubaï</option>
+          </optgroup>
+          <optgroup label="🇸🇦 Arabie Saoudite">
+            <option value="Djeddah">Djeddah</option>
+            <option value="La Mecque">La Mecque</option>
+            <option value="Médine">Médine</option>
+            <option value="Riyad">Riyad</option>
+          </optgroup>
+          <optgroup label="🇶🇦 Qatar">
+            <option value="Al Wakra">Al Wakra</option>
+            <option value="Doha">Doha</option>
+          </optgroup>
+          <optgroup label="🇹🇷 Turquie">
+            <option value="Ankara">Ankara</option>
+            <option value="Antalya">Antalya</option>
+            <option value="Bursa">Bursa</option>
+            <option value="Istanbul">Istanbul</option>
+            <option value="Izmir">Izmir</option>
+          </optgroup>
+          <optgroup label="🇫🇷 France">
+            <option value="Bordeaux">Bordeaux</option>
+            <option value="Lille">Lille</option>
+            <option value="Lyon">Lyon</option>
+            <option value="Marseille">Marseille</option>
+            <option value="Montpellier">Montpellier</option>
+            <option value="Nantes">Nantes</option>
+            <option value="Nice">Nice</option>
+            <option value="Paris">Paris</option>
+            <option value="Strasbourg">Strasbourg</option>
+            <option value="Toulouse">Toulouse</option>
+          </optgroup>
+          <optgroup label="🇩🇪 Allemagne">
+            <option value="Berlin">Berlin</option>
+            <option value="Cologne">Cologne</option>
+            <option value="Düsseldorf">Düsseldorf</option>
+            <option value="Francfort">Francfort</option>
+            <option value="Hambourg">Hambourg</option>
+            <option value="Munich">Munich</option>
+            <option value="Stuttgart">Stuttgart</option>
+          </optgroup>
+          <optgroup label="🇬🇧 Royaume-Uni">
+            <option value="Birmingham">Birmingham</option>
+            <option value="Glasgow">Glasgow</option>
+            <option value="Leeds">Leeds</option>
+            <option value="Liverpool">Liverpool</option>
+            <option value="Londres">Londres</option>
+            <option value="Manchester">Manchester</option>
+          </optgroup>
+          <optgroup label="🇪🇸 Espagne">
+            <option value="Barcelone">Barcelone</option>
+            <option value="Bilbao">Bilbao</option>
+            <option value="Madrid">Madrid</option>
+            <option value="Séville">Séville</option>
+            <option value="Valence">Valence</option>
+          </optgroup>
+          <optgroup label="🇮🇹 Italie">
+            <option value="Milan">Milan</option>
+            <option value="Naples">Naples</option>
+            <option value="Rome">Rome</option>
+            <option value="Turin">Turin</option>
+            <option value="Venise">Venise</option>
+          </optgroup>
+          <optgroup label="🇳🇱 Pays-Bas">
+            <option value="Amsterdam">Amsterdam</option>
+            <option value="Rotterdam">Rotterdam</option>
+            <option value="Utrecht">Utrecht</option>
+          </optgroup>
+          <optgroup label="🇧🇪 Belgique">
+            <option value="Anvers">Anvers</option>
+            <option value="Bruxelles">Bruxelles</option>
+            <option value="Gand">Gand</option>
+          </optgroup>
+          <optgroup label="🇨🇭 Suisse">
+            <option value="Bâle">Bâle</option>
+            <option value="Berne">Berne</option>
+            <option value="Genève">Genève</option>
+            <option value="Zurich">Zurich</option>
+          </optgroup>
+          <optgroup label="🇵🇱 Pologne">
+            <option value="Cracovie">Cracovie</option>
+            <option value="Gdańsk">Gdańsk</option>
+            <option value="Varsovie">Varsovie</option>
+            <option value="Wrocław">Wrocław</option>
+          </optgroup>
+          <optgroup label="🇷🇺 Russie">
+            <option value="Ekaterinbourg">Ekaterinbourg</option>
+            <option value="Moscou">Moscou</option>
+            <option value="Novosibirsk">Novosibirsk</option>
+            <option value="Saint-Pétersbourg">Saint-Pétersbourg</option>
+          </optgroup>
+          <optgroup label="🇨🇳 Chine">
+            <option value="Beijing">Beijing</option>
+            <option value="Chengdu">Chengdu</option>
+            <option value="Guangzhou">Guangzhou</option>
+            <option value="Hong Kong">Hong Kong</option>
+            <option value="Shanghai">Shanghai</option>
+            <option value="Shenzhen">Shenzhen</option>
+            <option value="Tianjin">Tianjin</option>
+            <option value="Wuhan">Wuhan</option>
+          </optgroup>
+          <optgroup label="🇮🇳 Inde">
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Pune">Pune</option>
+          </optgroup>
+          <optgroup label="🇯🇵 Japon">
+            <option value="Fukuoka">Fukuoka</option>
+            <option value="Nagoya">Nagoya</option>
+            <option value="Osaka">Osaka</option>
+            <option value="Sapporo">Sapporo</option>
+            <option value="Tokyo">Tokyo</option>
+            <option value="Yokohama">Yokohama</option>
+          </optgroup>
+          <optgroup label="🇰🇷 Corée du Sud">
+            <option value="Busan">Busan</option>
+            <option value="Incheon">Incheon</option>
+            <option value="Séoul">Séoul</option>
+          </optgroup>
+          <optgroup label="🇸🇬 Singapour">
+            <option value="Singapour">Singapour</option>
+          </optgroup>
+          <optgroup label="🇲🇾 Malaisie">
+            <option value="George Town">George Town</option>
+            <option value="Johor Bahru">Johor Bahru</option>
+            <option value="Kuala Lumpur">Kuala Lumpur</option>
+          </optgroup>
+          <optgroup label="🇹🇭 Thaïlande">
+            <option value="Bangkok">Bangkok</option>
+            <option value="Chiang Mai">Chiang Mai</option>
+            <option value="Pattaya">Pattaya</option>
+          </optgroup>
+          <optgroup label="🇻🇳 Vietnam">
+            <option value="Hanoi">Hanoi</option>
+            <option value="Hô Chi Minh-Ville">Hô Chi Minh-Ville</option>
+            <option value="Haïphong">Haïphong</option>
+          </optgroup>
+          <optgroup label="🇮🇩 Indonésie">
+            <option value="Bandung">Bandung</option>
+            <option value="Jakarta">Jakarta</option>
+            <option value="Medan">Medan</option>
+            <option value="Surabaya">Surabaya</option>
+          </optgroup>
+          <optgroup label="🇺🇸 États-Unis">
+            <option value="Atlanta">Atlanta</option>
+            <option value="Boston">Boston</option>
+            <option value="Chicago">Chicago</option>
+            <option value="Dallas">Dallas</option>
+            <option value="Houston">Houston</option>
+            <option value="Los Angeles">Los Angeles</option>
+            <option value="Miami">Miami</option>
+            <option value="New York">New York</option>
+            <option value="Phoenix">Phoenix</option>
+            <option value="San Francisco">San Francisco</option>
+            <option value="Seattle">Seattle</option>
+            <option value="Washington D.C.">Washington D.C.</option>
+          </optgroup>
+          <optgroup label="🇨🇦 Canada">
+            <option value="Calgary">Calgary</option>
+            <option value="Montréal">Montréal</option>
+            <option value="Ottawa">Ottawa</option>
+            <option value="Toronto">Toronto</option>
+            <option value="Vancouver">Vancouver</option>
+          </optgroup>
+          <optgroup label="🇧🇷 Brésil">
+            <option value="Belo Horizonte">Belo Horizonte</option>
+            <option value="Brasília">Brasília</option>
+            <option value="Fortaleza">Fortaleza</option>
+            <option value="Manaus">Manaus</option>
+            <option value="Rio de Janeiro">Rio de Janeiro</option>
+            <option value="Salvador">Salvador</option>
+            <option value="São Paulo">São Paulo</option>
+          </optgroup>
+          <optgroup label="🇲🇽 Mexique">
+            <option value="Guadalajara">Guadalajara</option>
+            <option value="Mexico">Mexico</option>
+            <option value="Monterrey">Monterrey</option>
+            <option value="Puebla">Puebla</option>
+            <option value="Tijuana">Tijuana</option>
+          </optgroup>
+          <optgroup label="🇦🇷 Argentine">
+            <option value="Buenos Aires">Buenos Aires</option>
+            <option value="Córdoba">Córdoba</option>
+            <option value="Rosario">Rosario</option>
+          </optgroup>
+          <optgroup label="🇨🇴 Colombie">
+            <option value="Barranquilla">Barranquilla</option>
+            <option value="Bogotá">Bogotá</option>
+            <option value="Cali">Cali</option>
+            <option value="Medellín">Medellín</option>
+          </optgroup>
+          <optgroup label="🇦🇺 Australie">
+            <option value="Adelaide">Adelaide</option>
+            <option value="Brisbane">Brisbane</option>
+            <option value="Melbourne">Melbourne</option>
+            <option value="Perth">Perth</option>
+            <option value="Sydney">Sydney</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="f-divider"></div>
+      <!-- TYPE DE SERVICE -->
       <div class="f-sec"><div class="f-sec-title">Type de service</div>
         <label class="f-opt"><input type="checkbox" id="f-st" checked="" onchange="filterCards()" style=""><span>🏭 Stockage</span></label>
         <label class="f-opt"><input type="checkbox" id="f-tr" checked="" onchange="filterCards()" style=""><span>🚚 Transport</span></label>
       </div>
+      <!-- PRIX -->
       <div class="f-sec"><div class="f-sec-title">Prix max</div>
-        <input type="range" class="f-range" id="f-price" min="0" max="10000000" value="10000000" oninput="filterCards();this.nextElementSibling.textContent='Max '+parseInt(this.value).toLocaleString()" style="">
-        <div style="font-size:11px;color:var(--mt2);margin-top:4px;">Max 10 000 000</div>
+        <input type="range" class="f-range" id="f-price" min="0" max="10000000" value="10000000" oninput="filterCards();document.getElementById('f-price-lbl').textContent='Max '+parseInt(this.value).toLocaleString()+' €'" style="">
+        <div style="font-size:11px;color:var(--mt2);margin-top:4px;" id="f-price-lbl">Max 10 000 000 €</div>
       </div>
+      <!-- NOTE -->
       <div class="f-sec"><div class="f-sec-title">Note minimale</div>
-        <label class="f-opt"><input type="radio" name="rt" value="4.5" onchange="filterCards()" style=""><span>⭐ 4.5+</span></label>
-        <label class="f-opt"><input type="radio" name="rt" value="0" checked="" onchange="filterCards()" style=""><span>Toutes</span></label>
+        <div class="f-rating-row">
+          <button class="f-rating-btn on" data-r="0" onclick="lcSetRating(0,this)">Toutes</button>
+          <button class="f-rating-btn" data-r="4" onclick="lcSetRating(4,this)">★ 4+</button>
+          <button class="f-rating-btn" data-r="4.5" onclick="lcSetRating(4.5,this)">★ 4.5+</button>
+        </div>
+        <input type="radio" name="rt" value="0" id="rt-0" checked style="display:none" onchange="filterCards()">
+        <input type="radio" name="rt" value="4" id="rt-4" style="display:none" onchange="filterCards()">
+        <input type="radio" name="rt" value="4.5" id="rt-45" style="display:none" onchange="filterCards()">
       </div>
+      <button class="f-reset-btn" onclick="lcResetFilters()">↺ Réinitialiser</button>
     </div>
     <div class="results">
-      <div class="res-hdr">
-        <div class="res-cnt"><b id="res-count">8</b> résultats</div>
+      <div class="res-toolbar">
+        <div class="res-cnt"><b id="res-count">0</b> résultats</div>
+        <div class="vt-btns">
+          <button class="vt-btn on" id="vt-grid" onclick="lcSetCardView('grid')" title="Grille">⊞</button>
+          <button class="vt-btn" id="vt-list" onclick="lcSetCardView('list')" title="Liste">☰</button>
+        </div>
         <select class="sort-sel" id="sort-by" onchange="filterCards()">
           <option value="def">Pertinence</option>
           <option value="asc">Prix ↑</option>
           <option value="desc">Prix ↓</option>
           <option value="rating">Mieux notés</option>
+          <option value="new">Plus récents</option>
         </select>
       </div>
+      <div class="f-active-tags" id="lc-active-tags"></div>
       <div class="cards" id="cards-grid">
     <div class="card" style="display:none" onclick="expandCard(event, 'op1')">
       <div class="card-img">
@@ -8442,39 +9187,56 @@ function lcNormalizeAnnonceQueuesOnce() {
   window.__lcQueuesNormalized = true;
   try {
     const rawOps = JSON.parse(localStorage.getItem('lc_operators') || '[]');
-    if (!Array.isArray(rawOps) || rawOps.length === 0) return;
     const pending = JSON.parse(localStorage.getItem('lc_pending_annonces') || '[]');
     const published = [];
     let changed = false;
-    rawOps.forEach(function(op) {
-      if (!op) return;
-      if (lcIsPublishedOperator(op)) {
-        published.push(op);
-        return;
-      }
-      const st = String(op.statut || '').toLowerCase();
-      if (st === 'rejete' || st === 'rejetee' || st === 'supprime' || st === 'brouillon') {
-        changed = true;
-        return;
-      }
-      const key = String(op.id || op.userId || op.email || '');
-      const exists = pending.some(function(p) {
-        return String(p.id || p.userId || p.email || '') === key || (op.email && p.email === op.email);
-      });
-      if (!exists) {
-        pending.push({
-          ...op,
-          statut: 'en_attente_validation',
-          published: false,
-          visible: false,
-          created_at: op.created_at || new Date().toISOString()
+
+    if (Array.isArray(rawOps) && rawOps.length > 0) {
+      rawOps.forEach(function(op) {
+        if (!op) return;
+        if (lcIsPublishedOperator(op)) {
+          published.push(op);
+          return;
+        }
+        const st = String(op.statut || '').toLowerCase();
+        if (st === 'rejete' || st === 'rejetee' || st === 'supprime' || st === 'brouillon') {
+          changed = true;
+          return;
+        }
+        const key = String(op.id || op.userId || op.email || '');
+        const exists = pending.some(function(p) {
+          return String(p.id || p.userId || p.email || '') === key || (op.email && p.email === op.email);
         });
+        if (!exists) {
+          pending.push({
+            ...op,
+            statut: 'en_attente_validation',
+            published: false,
+            visible: false,
+            created_at: op.created_at || new Date().toISOString()
+          });
+        }
+        changed = true;
+      });
+      if (changed) {
+        localStorage.setItem('lc_operators', JSON.stringify(published));
       }
-      changed = true;
+    }
+
+    // FIX: Purger lc_pending_annonces des annonces publiees/rejetees/ignorees
+    const publishedIds = new Set(published.map(function(o){ return String(o.id || ''); }));
+    const rejectedIds2 = typeof lcGetRejectedIds === 'function' ? lcGetRejectedIds() : [];
+    const pendingCleaned = pending.filter(function(a) {
+      if (!a || !a.id) return false;
+      // Exclure si dans la liste noire admin
+      if (rejectedIds2.includes(String(a.id))) return false;
+      const st = String(a.statut || '').toLowerCase();
+      if (st === 'publie' || st === 'publiee' || st === 'rejete' || st === 'rejetee' || st === 'supprime' || st === 'brouillon') return false;
+      if (publishedIds.has(String(a.id))) return false;
+      return true;
     });
-    if (changed) {
-      localStorage.setItem('lc_operators', JSON.stringify(published));
-      localStorage.setItem('lc_pending_annonces', JSON.stringify(pending));
+    if (pendingCleaned.length !== pending.length || changed) {
+      localStorage.setItem('lc_pending_annonces', JSON.stringify(pendingCleaned));
     }
   } catch(e) { console.warn('Normalisation annonces:', e); }
 }
@@ -8636,28 +9398,57 @@ function savePendingAnnonces(list) {
 async function syncPendingAnnoncesFromSupabase() {
   if (!db) return loadPendingAnnonces();
   try {
+    // ✅ FIX: Requête ciblée uniquement sur statut = 'en_attente_validation'
+    // Ne jamais utiliser published.eq.false ou visible.eq.false — trop permissif,
+    // cela ferait revenir les annonces publiées/rejetées à chaque connexion.
     const { data, error } = await db
       .from('annonces')
       .select('*')
-      .or('statut.eq.en_attente_validation,published.eq.false,visible.eq.false');
+      .eq('statut', 'en_attente_validation');
     if (error) {
       console.warn('Supabase annonces en attente:', error.message || error);
       return loadPendingAnnonces();
     }
     const remote = (data || []).filter(function(a) {
-      const st = String(a && a.statut || '').toLowerCase();
-      // Exclure les annonces publiées ou rejetées — elles ne doivent pas revenir dans la liste d'attente
-      if (st === 'publie' || st === 'publiee' || st === 'rejete' || st === 'rejetee' || st === 'supprime') return false;
-      return a && a.id && (st === 'en_attente_validation' || a.published === false || a.visible === false);
+      if (!a || !a.id) return false;
+      const st = String(a.statut || '').toLowerCase();
+      // Double-vérification : n'accepter QUE les annonces en attente de validation
+      return st === 'en_attente_validation';
     });
-    if (!remote.length) return loadPendingAnnonces();
+
+    // ✅ FIX: Nettoyer le localStorage des annonces qui ne sont plus en attente
+    // (publiées ou rejetées depuis Supabase mais encore présentes localement)
     const local = loadPendingAnnonces();
-    const merged = local.slice();
-    remote.forEach(function(a) {
+    const remoteIds = new Set(remote.map(function(a){ return String(a.id); }));
+    // ✅ Liste noire : IDs rejetés/ignorés par l'admin — ne jamais les ramener
+    const rejectedIds = typeof lcGetRejectedIds === 'function' ? lcGetRejectedIds() : [];
+
+    // Filtrer les annonces locales : garder uniquement celles en attente de validation
+    // et celles qui ne sont pas encore dans Supabase (nouvelles soumissions hors-ligne)
+    const localFiltered = local.filter(function(a) {
+      if (!a || !a.id) return false;
+      // ✅ Exclure si dans la liste noire (rejetées/ignorées par l'admin)
+      if (rejectedIds.includes(String(a.id))) return false;
+      const st = String(a.statut || '').toLowerCase();
+      // ✅ Exclure définitivement les annonces publiées/rejetées/supprimées du localStorage
+      if (st === 'publie' || st === 'publiee' || st === 'rejete' || st === 'rejetee' || st === 'supprime') return false;
+      return st === 'en_attente_validation' || st === '' || !st;
+    });
+
+    // ✅ Filtrer aussi les annonces remote qui seraient dans la liste noire
+    const remoteFiltered = remote.filter(function(a) {
+      return !rejectedIds.includes(String(a.id));
+    });
+
+    // Merger : priorité aux données Supabase pour les annonces déjà sync
+    const merged = localFiltered.slice();
+    remoteFiltered.forEach(function(a) {
       const idx = merged.findIndex(function(x){ return String(x.id) === String(a.id); });
       if (idx >= 0) merged[idx] = Object.assign({}, merged[idx], a);
       else merged.push(a);
     });
+
+    // ✅ Sauvegarder la liste nettoyée dans localStorage
     localStorage.setItem('lc_pending_annonces', JSON.stringify(merged));
     return merged;
   } catch(e) {
@@ -8717,6 +9508,21 @@ function adminPublierAnnonce(id) {
   showNotif('✅','Annonce publiée !','"' + annonce.name + '" est maintenant visible dans la recherche.');
   window._adminNav('annonces');
 }
+// ── Liste noire locale des annonces rejetées/ignorées ──────
+function lcGetRejectedIds() {
+  try { return JSON.parse(localStorage.getItem('lc_rejected_ids') || '[]'); } catch(e) { return []; }
+}
+function lcAddRejectedId(id) {
+  try {
+    const ids = lcGetRejectedIds();
+    if (!ids.includes(String(id))) ids.push(String(id));
+    localStorage.setItem('lc_rejected_ids', JSON.stringify(ids));
+  } catch(e) {}
+}
+function lcIsRejectedId(id) {
+  return lcGetRejectedIds().includes(String(id));
+}
+
 function adminRejeterAnnonce(id) {
   if (!confirm('Rejeter et supprimer cette annonce ?')) return;
   const pending = loadPendingAnnonces();
@@ -8724,23 +9530,25 @@ function adminRejeterAnnonce(id) {
   if (idx < 0) return;
   const nom = pending[idx].name;
 
-  // Retirer de la liste d'attente locale
+  // 1. Ajouter dans la liste noire locale (empêche le retour à chaque connexion)
+  lcAddRejectedId(id);
+
+  // 2. Retirer de la liste d'attente locale
   pending.splice(idx, 1);
   localStorage.setItem('lc_pending_annonces', JSON.stringify(pending));
 
-  // ✅ Mettre à jour Supabase : marquer comme rejetée
+  // 3. Marquer comme rejetée dans Supabase (upsert pour être sûr que la ligne existe)
   if (db) {
     try {
       db.from('annonces')
-        .update({ statut: 'rejete', published: false, visible: false })
-        .eq('id', id)
+        .upsert([{ id: id, statut: 'rejete', published: false, visible: false }], { onConflict: 'id' })
         .then(function(res) {
           if (res && res.error) console.warn('Supabase rejet annonce:', res.error.message || res.error);
         });
     } catch(e) { console.warn('Supabase rejet annonce:', e); }
   }
 
-  // Rafraîchir la recherche (l'annonce ne doit pas y apparaître)
+  // 4. Rafraîchir la recherche
   try { filterCards._supaLoaded = true; filterCards(); } catch(e) {}
 
   showNotif('🗑️','Annonce rejetée','"' + nom + '" a été supprimée de la liste d\'attente.');
@@ -9126,6 +9934,10 @@ async function filterCards() {
   const maxPrice = parseFloat(document.getElementById('f-price')?.value) || 10000000;
   const minRat   = parseFloat(document.querySelector('input[name="rt"]:checked')?.value) || 0;
   const sortBy   = document.getElementById('sort-by')?.value || 'def';
+  // GEO FILTERS
+  const fCountry = (document.getElementById('f-country')?.value || '').toLowerCase().trim();
+  const fCity    = (document.getElementById('f-city')?.value || '').toLowerCase().trim();
+  const fRegion  = window._lcActiveRegion || '';
 
   // Recharge toujours depuis localStorage
   operators = loadOperators();
@@ -9141,6 +9953,19 @@ async function filterCards() {
     // Masquer les annonces en attente de validation admin
     if (l.statut === 'en_attente_validation') return false;
     if (loc && !l.loc.toLowerCase().includes(loc) && !l.name.toLowerCase().includes(loc)) return false;
+    // GEO : pays / ville / région
+    if (fCountry) {
+      const lc = (l.country || l.loc || '').toLowerCase();
+      if (!lc.includes(fCountry)) return false;
+    }
+    if (fCity) {
+      const lci = (l.city || l.loc || '').toLowerCase();
+      if (!lci.includes(fCity)) return false;
+    }
+    if (fRegion) {
+      const lr = (l.region || lcGuessRegion(l.loc || '')).toLowerCase();
+      if (lr !== fRegion) return false;
+    }
     if (typeF && l.type !== typeF) return false;
     // Si aucune case n\'est cochée, afficher tout ; sinon filtrer
     if (!bothUnchecked) {
@@ -9155,7 +9980,9 @@ async function filterCards() {
   if (sortBy === 'asc')    filtered.sort((a,b) => a.price - b.price);
   if (sortBy === 'desc')   filtered.sort((a,b) => b.price - a.price);
   if (sortBy === 'rating') filtered.sort((a,b) => b.r - a.r);
+  if (sortBy === 'new') filtered.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
   if (typeof lcPrimeSearchListingCache === 'function') lcPrimeSearchListingCache(filtered);
+  if (typeof lcRenderActiveTags === 'function') lcRenderActiveTags();
 
   document.getElementById('res-count').textContent = filtered.length;
   const g = document.getElementById('cards-grid');
@@ -9190,11 +10017,16 @@ async function filterCards() {
         <img src="${photoUrl}" alt="${l.name}" loading="lazy" onerror="this.style.display='none'">
         <div class="card-img-overlay"></div>
         <span class="ctag ${l.type}">${l.type==='st'?'🏭 Stockage':'🚚 Transport'}</span>
+        ${l.flag ? `<span class="card-flag" title="${l.country||l.loc}">${l.flag}</span>` : ''}
         ${dateStr ? `<span style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;">ðŸ“… ${dateStr}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-name">${l.name}</div>
-        <div class="card-loc">📍 ${l.loc}</div>
+        <div class="card-geo">
+          <span class="card-city">${l.city || (l.loc||'').split(',')[0]?.trim() || l.loc}</span>
+          <span style="color:var(--bd2);margin:0 3px;">•</span>
+          <span>${l.country || (l.loc||'').split(',').slice(-1)[0]?.trim() || ''}</span>
+        </div>
         ${dateStr ? `<div style="font-size:10px;color:var(--mt);margin-top:3px;margin-bottom:2px;">ðŸ“… Mise en ligne : <b style="color:var(--mt3);">${dateStr}</b></div>` : ''}
         <div class="card-chips">${(l.chips||[]).map(c=>`<span class="chip">${c}</span>`).join('')}</div>
         <div class="card-ft">
@@ -9243,6 +10075,11 @@ function lcPrimeSearchListingCache(list) {
     lcSearchMapState.byId[lcMapListingKey(op)] = op;
     if (op.id) lcSearchMapState.byId[String(op.id)] = op;
   });
+  // Alimente les selects géo
+  if (list && list.length > 0) {
+    window.lcAllListings = list;
+    if (typeof lcPopulateGeoSelects === 'function') lcPopulateGeoSelects();
+  }
 }
 
 function lcReserveSearchListing(key) {
@@ -9597,21 +10434,193 @@ function lcToggleSearchView() {
   lcApplySearchView();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// LOGICONNECT ONBOARDING VISUEL GUIDE — 3 ETAPES
+// ═══════════════════════════════════════════════════════════════
+
+var lcOb = { step: 1, type: null, subtype: null };
+
+var lcObData = {
+  transport: {
+    label: 'Transport', ic: '🚚',
+    sub: [
+      { key:'camion_semi',    ic:'🚛', label:'Semi-remorque',          desc:'Chargement complet longue distance',        badge:'Lourd'   },
+      { key:'camion_bache',   ic:'🚚', label:'Camion bâché',           desc:'Transport standard tout secteur',           badge:''        },
+      { key:'camion_frigo',   ic:'❄️', label:'Frigorifique',           desc:'Denrées fraîches et température contrôlée', badge:'Froid'   },
+      { key:'fourgon',        ic:'🚐', label:'Fourgon / Utilitaire',   desc:'Petits volumes et livraisons urbaines',     badge:''        },
+      { key:'citerne',        ic:'⛽', label:'Camion citerne',         desc:'Liquides, carburant, matières en vrac',     badge:'Vrac'    },
+      { key:'plateau',        ic:'🏗️', label:'Porte-engins / Plateau', desc:'Machines et engins de chantier',           badge:'XXL'     },
+      { key:'express',        ic:'⚡', label:'Livraison express',      desc:'Urgences et délais courts garantis',        badge:'Rapide'  },
+      { key:'international',  ic:'🌍', label:'International',          desc:'Douane, cross-border, import/export',       badge:'Monde'   }
+    ]
+  },
+  stockage: {
+    label: 'Stockage', ic: '🏭',
+    sub: [
+      { key:'entrepot',       ic:'🏭', label:'Entrepôt industriel',   desc:'Grande surface, quai, palettisation',           badge:'Grand'    },
+      { key:'chambre_froide', ic:'🧊', label:'Chambre froide',        desc:'Conservation produits alimentaires',             badge:'Froid'    },
+      { key:'rack',           ic:'📦', label:'Stockage en rack',      desc:'Rayonnages haute densité, flux tendu',          badge:''         },
+      { key:'vrac',           ic:'⛏️', label:'Stockage en vrac',      desc:'Matières premières, minerais, grain',           badge:'Vrac'     },
+      { key:'conteneur',      ic:'🚢', label:'Dépôt conteneurs',      desc:'Stockage portuaire et logistique maritime',     badge:'Port'     },
+      { key:'dangereux',      ic:'⚠️', label:'Matières dangereuses',  desc:'ATEX, produits chimiques, réglementé',          badge:'Agréé'    },
+      { key:'secure',         ic:'🔐', label:'Entrepôt sécurisé',     desc:'Haute valeur, surveillance 24h/24',             badge:'Sécurisé' },
+      { key:'crossdock',      ic:'🔄', label:'Cross-docking',         desc:'Transit rapide, réexpédition directe',          badge:'Flux'     }
+    ]
+  }
+};
+
+function lcObUpdateDots() {
+  for (var i = 1; i <= 3; i++) {
+    var d = document.getElementById('lc-ob-d' + i);
+    if (!d) continue;
+    d.className = 'lc-ob-dot' + (i < lcOb.step ? ' done' : i === lcOb.step ? ' active' : '');
+  }
+}
+
+function lcObRenderPath() {
+  var el = document.getElementById('lc-ob-path');
+  if (!el) return;
+  var h = '';
+  if (lcOb.type) {
+    var td = lcObData[lcOb.type];
+    h += '<div class="lc-ob-crumb">' + td.ic + ' ' + td.label + '</div>';
+    if (lcOb.subtype) {
+      var s = td.sub.filter(function(x){ return x.key === lcOb.subtype; })[0];
+      if (s) h += '<span class="lc-ob-sep">&rsaquo;</span><div class="lc-ob-crumb">' + s.ic + ' ' + s.label + '</div>';
+    }
+  }
+  el.innerHTML = h;
+}
+
+// ETAPE 1 — Choix du type
+function lcObStep1(dir) {
+  lcOb.step = 1; lcOb.type = null; lcOb.subtype = null;
+  lcObUpdateDots(); lcObRenderPath();
+  var count = typeof loadOperators === 'function' ? loadOperators().length : 0;
+  var animCls = dir === 'back' ? 'lc-ob-bk' : 'lc-ob-in';
+  var html = '<div class="' + animCls + '">';
+  html += '<div class="lc-ob-eyebrow">&#10022; Plateforme Logistique Mondiale</div>';
+  html += '<h1 class="lc-ob-title">Que cherchez-vous<br><span>aujourd&#8217;hui ?</span></h1>';
+  html += '<p class="lc-ob-sub">Dites-nous votre besoin — nous vous guidons vers les meilleurs prestataires en quelques secondes.</p>';
+  html += '<div class="lc-ob-count"><div class="lc-ob-dot-live"></div><b>' + count + '</b>&nbsp;annonces disponibles</div>';
+  html += '<div class="lc-ob-grid g2">';
+  html += '<button class="lc-ob-card primary" onclick="lcObChooseType(&quot;transport&quot;)">';
+  html += '<span class="lc-ob-ic">🚚</span>';
+  html += '<div class="lc-ob-card-t">Transport de marchandises</div>';
+  html += '<div class="lc-ob-card-d">Camions, semi-remorques, frigo, plateau, express — national &amp; international</div>';
+  html += '<div class="lc-ob-badge">Populaire</div></button>';
+  html += '<button class="lc-ob-card gr" onclick="lcObChooseType(&quot;stockage&quot;)">';
+  html += '<span class="lc-ob-ic">🏭</span>';
+  html += '<div class="lc-ob-card-t">Espace de stockage</div>';
+  html += '<div class="lc-ob-card-d">Entrepôts, chambres froides, racks, conteneurs, cross-docking &amp; plus</div>';
+  html += '</button></div></div>';
+  document.getElementById('lc-ob-content').innerHTML = html;
+}
+
+// ETAPE 2 — Sous-catégorie
+function lcObChooseType(type) {
+  lcOb.type = type; lcOb.step = 2;
+  lcObUpdateDots(); lcObRenderPath();
+  var td = lcObData[type];
+  var motVehicule = type === 'transport' ? 'v&eacute;hicule' : 'stockage';
+  var html = '<div class="lc-ob-in">';
+  html += '<div class="lc-ob-eyebrow">' + td.ic + ' ' + td.label + '</div>';
+  html += '<h2 class="lc-ob-title">Quel type de <span>' + motVehicule + '</span> ?</h2>';
+  html += '<p class="lc-ob-sub">Choisissez la cat&eacute;gorie — le filtrage s&rsquo;adapte automatiquement.</p>';
+  html += '<div class="lc-ob-grid g4">';
+  for (var i = 0; i < td.sub.length; i++) {
+    var s = td.sub[i];
+    html += '<button class="lc-ob-card" onclick="lcObChooseSub(&quot;' + s.key + '&quot;)">';
+    if (s.badge) html += '<div class="lc-ob-badge">' + s.badge + '</div>';
+    html += '<span class="lc-ob-ic">' + s.ic + '</span>';
+    html += '<div class="lc-ob-card-t">' + s.label + '</div>';
+    html += '<div class="lc-ob-card-d">' + s.desc + '</div>';
+    html += '</button>';
+  }
+  html += '</div>';
+  html += '<button class="lc-ob-back" onclick="lcObStep1(&quot;back&quot;)">&#8592; Retour</button>';
+  html += '</div>';
+  document.getElementById('lc-ob-content').innerHTML = html;
+}
+
+// ETAPE 3 — Mode d'affichage
+function lcObChooseSub(subKey) {
+  lcOb.subtype = subKey; lcOb.step = 3;
+  lcObUpdateDots(); lcObRenderPath();
+  var td = lcObData[lcOb.type];
+  var sub = td.sub.filter(function(x){ return x.key === subKey; })[0];
+  var count = typeof loadOperators === 'function' ? loadOperators().length : 0;
+  var html = '<div class="lc-ob-in">';
+  html += '<div class="lc-ob-eyebrow">' + sub.ic + ' ' + sub.label + '</div>';
+  html += '<h2 class="lc-ob-title">Comment voulez-vous<br><span>explorer ?</span></h2>';
+  html += '<p class="lc-ob-sub">Votre filtre <b>' + sub.label + '</b> est d&eacute;j&agrave; appliqu&eacute;. Choisissez votre mode.</p>';
+  html += '<div class="lc-ob-count"><div class="lc-ob-dot-live"></div><b>' + count + '</b>&nbsp;prestataires disponibles</div>';
+  html += '<div class="lc-ob-mode-grid">';
+  html += '<button class="lc-ob-mode-btn" onclick="lcObLaunch(&quot;map&quot;)">';
+  html += '<span style="font-size:32px;display:block;margin-bottom:10px;">🗺️</span>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">Carte interactive</div>';
+  html += '<div style="font-size:11px;color:var(--mt2);">Prix affich&eacute;s, r&eacute;servation directe</div>';
+  html += '</button>';
+  html += '<button class="lc-ob-mode-btn" onclick="lcObLaunch(&quot;list&quot;)">';
+  html += '<span style="font-size:32px;display:block;margin-bottom:10px;">📋</span>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">Liste filtr&eacute;e</div>';
+  html += '<div style="font-size:11px;color:var(--mt2);">Fiches d&eacute;taill&eacute;es, filtres avanc&eacute;s</div>';
+  html += '</button></div>';
+  html += '<button class="lc-ob-back" onclick="lcObChooseType(&quot;' + lcOb.type + '&quot;)">&#8592; Retour</button>';
+  html += '</div>';
+  document.getElementById('lc-ob-content').innerHTML = html;
+}
+
+// LANCER LA RECHERCHE avec filtres pré-appliqués
+function lcObLaunch(mode) {
+  var overlay = document.getElementById('lc-onboard-overlay');
+  if (overlay) overlay.classList.add('lc-ob-hidden');
+  var typeFilter = lcOb.type === 'transport' ? 'tr' : 'st';
+  var mapType = document.getElementById('lc-map-type');
+  if (mapType) mapType.value = typeFilter;
+  var searchType = document.getElementById('search-type');
+  if (searchType) searchType.value = typeFilter;
+  var td = lcOb.type ? lcObData[lcOb.type] : null;
+  var sub = td && lcOb.subtype ? td.sub.filter(function(x){ return x.key === lcOb.subtype; })[0] : null;
+  if (sub) {
+    var mapQ = document.getElementById('lc-map-query');
+    if (mapQ) mapQ.value = sub.label;
+  }
+  var fSt = document.getElementById('f-st');
+  var fTr = document.getElementById('f-tr');
+  if (fSt) fSt.checked = typeFilter === 'st';
+  if (fTr) fTr.checked = typeFilter === 'tr';
+  lcChooseSearchMode(mode);
+}
+
+function lcObShow() {
+  var overlay = document.getElementById('lc-onboard-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('lc-ob-hidden');
+  lcOb.step = 1; lcOb.type = null; lcOb.subtype = null;
+  lcObUpdateDots();
+  lcObStep1('in');
+}
+
+function lcObHide() {
+  var overlay = document.getElementById('lc-onboard-overlay');
+  if (overlay) overlay.classList.add('lc-ob-hidden');
+}
+
+// ═══════════════════════════════════════════════════════════════
+
 function lcSearchPageEntered() {
+  // ✅ Réinitialiser les filtres si nécessaire
   var q = document.getElementById('lc-map-query');
   var t = document.getElementById('lc-map-type');
   var oldQ = document.getElementById('search-loc');
   var oldT = document.getElementById('search-type');
-  lcSearchMapState.mode = 'choice';
   if (q && oldQ && !q.value) q.value = oldQ.value || '';
   if (t && oldT && !t.value) t.value = oldT.value || '';
+
+  // ✅ LANCER L'ONBOARDING VISUEL GUIDÉ
   filterCards();
-  lcApplySearchView();
-  if (!lcSearchMapState.centeredOnce && navigator.geolocation && lcSearchMapState.mode === 'map') {
-    navigator.geolocation.getCurrentPosition(function(pos) {
-      if (lcEnsureSearchMap()) lcSearchMapState.map.setView([pos.coords.latitude, pos.coords.longitude], 11);
-    }, function(){}, { enableHighAccuracy: false, timeout: 5000, maximumAge: 120000 });
-  }
+  lcObShow();
 }
 
 function lcSearchPageLeft() {
@@ -9621,6 +10630,8 @@ function lcSearchPageLeft() {
     pg.classList.remove('search-map-active');
     pg.classList.remove('search-list-active');
   }
+  // Masquer overlay onboarding quand on quitte la page
+  lcObHide();
 }
 
 var _origGoPageSearchMap = goPage;
@@ -9635,6 +10646,24 @@ goPage = function(name, btn) {
 document.addEventListener('DOMContentLoaded', function() {
   try { document.body.classList.toggle('lc-home-active', !!document.getElementById('page-home')?.classList.contains('on')); } catch(e) {}
   if (document.getElementById('page-search')?.classList.contains('on')) setTimeout(lcSearchPageEntered, 120);
+
+  // ✅ Lancer l'onboarding automatiquement 2 secondes après l'ouverture du site
+  setTimeout(function() {
+    // Ne pas lancer si l'utilisateur a déjà navigué ou si l'onboarding a déjà été vu
+    var alreadySeen = sessionStorage.getItem('lc_onboard_seen');
+    if (alreadySeen) return;
+    // Ne pas lancer si une autre page est active (dashboard, inscription, etc.)
+    var activePage = document.querySelector('.page.on');
+    var activePageId = activePage ? activePage.id : '';
+    if (activePageId && activePageId !== 'page-home' && activePageId !== 'page-search') return;
+    // Marquer comme vu pour cette session
+    sessionStorage.setItem('lc_onboard_seen', '1');
+    // Aller sur la page search et afficher l'onboarding
+    if (typeof goPage === 'function') goPage('search');
+    else if (typeof lcObShow === 'function') {
+      setTimeout(lcObShow, 100);
+    }
+  }, 2000);
 });
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -15223,6 +16252,343 @@ function adminSearchByOrder() {
   });
   setTimeout(function(){ ensureGpsPage(); injectGpsNav(); }, 600);
 })();
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// LOGICONNECT — GEO FILTERS HELPERS (international)
+// ══════════════════════════════════════════════════════════
+window._lcActiveRegion = '';
+
+const LC_REGION_COUNTRIES = {
+  afrique:['maroc','sénégal','algérie','tunisie','égypte','nigeria','kenya','ghana','côte d\'ivoire','afrique du sud','cameroun','éthiopie'],
+  europe:['france','espagne','allemagne','italie','pays-bas','belgique','portugal','pologne','suisse','royaume-uni','suède','danemark','autriche'],
+  asie:['chine','inde','japon','singapour','corée du sud','thaïlande','vietnam','indonésie','malaisie','philippines','bangladesh','pakistan'],
+  'moyen-orient':['émirats arabes unis','arabie saoudite','qatar','koweït','bahreïn','oman','turquie','israël','jordanie','liban','irak'],
+  amerique:['états-unis','canada','brésil','mexique','argentine','colombie','chili','pérou','équateur','venezuela','uruguay']
+};
+
+function lcGuessRegion(loc) {
+  const l = (loc || '').toLowerCase();
+  for (const [region, countries] of Object.entries(LC_REGION_COUNTRIES)) {
+    if (countries.some(c => l.includes(c))) return region;
+  }
+  return '';
+}
+
+function lcGetListings() {
+  return window.lcAllListings || window.operators || (typeof loadOperators === 'function' ? loadOperators() : []) || [];
+}
+
+function lcPopulateGeoSelects() {
+  const all = lcGetListings();
+  const reg = window._lcActiveRegion;
+
+  // Pays
+  const cSel = document.getElementById('f-country');
+  if (!cSel) return;
+  const prevC = cSel.value;
+  const countries = [...new Set(
+    all.filter(l => !reg || (l.region || lcGuessRegion(l.loc||'')) === reg)
+       .map(l => l.country || (l.loc||'').split(',').pop()?.trim() || '')
+       .filter(Boolean)
+  )].sort();
+  cSel.innerHTML = '<option value="">Tous les pays</option>';
+  countries.forEach(c => {
+    const flag = all.find(l => (l.country||'').toLowerCase() === c.toLowerCase())?.flag || '';
+    const o = document.createElement('option');
+    o.value = c; o.textContent = (flag ? flag + ' ' : '') + c;
+    cSel.appendChild(o);
+  });
+  if (countries.map(c=>c.toLowerCase()).includes(prevC.toLowerCase())) cSel.value = prevC;
+
+  // Villes
+  lcPopulateCitySel(cSel.value);
+}
+
+function lcPopulateCitySel(country) {
+  const all = lcGetListings();
+  const vSel = document.getElementById('f-city');
+  if (!vSel) return;
+  const prevV = vSel.value;
+  const cities = [...new Set(
+    all.filter(l => !country || (l.country||'').toLowerCase() === country.toLowerCase())
+       .map(l => l.city || (l.loc||'').split(',')[0]?.trim() || '')
+       .filter(Boolean)
+  )].sort();
+  vSel.innerHTML = '<option value="">Toutes les villes</option>';
+  cities.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    vSel.appendChild(o);
+  });
+  if (cities.map(c=>c.toLowerCase()).includes(prevV.toLowerCase())) vSel.value = prevV;
+}
+
+function lcOnCountryChange() {
+  lcPopulateCitySel(document.getElementById('f-country')?.value || '');
+  filterCards();
+}
+
+function lcSetRegion(chip) {
+  document.querySelectorAll('.f-region-chip').forEach(c => c.classList.remove('on'));
+  chip.classList.add('on');
+  window._lcActiveRegion = chip.dataset.region || '';
+  if (document.getElementById('f-country')) document.getElementById('f-country').value = '';
+  if (document.getElementById('f-city')) document.getElementById('f-city').value = '';
+  lcPopulateGeoSelects();
+  filterCards();
+}
+
+function lcSetRating(r, btn) {
+  document.querySelectorAll('.f-rating-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const map = {'0':'rt-0','4':'rt-4','4.5':'rt-45'};
+  const el = document.getElementById(map[String(r)]);
+  if (el) el.checked = true;
+  filterCards();
+}
+
+function lcSetCardView(v) {
+  const grid = document.getElementById('cards-grid');
+  if (grid) grid.className = 'cards' + (v === 'list' ? ' list-view' : '');
+  document.getElementById('vt-grid')?.classList.toggle('on', v === 'grid');
+  document.getElementById('vt-list')?.classList.toggle('on', v === 'list');
+}
+
+function lcResetFilters() {
+  window._lcActiveRegion = '';
+  document.querySelectorAll('.f-region-chip').forEach(c => c.classList.remove('on'));
+  document.querySelector('.f-region-chip[data-region=""]')?.classList.add('on');
+  if (document.getElementById('f-country')) document.getElementById('f-country').value = '';
+  if (document.getElementById('f-city')) document.getElementById('f-city').value = '';
+  if (document.getElementById('f-st')) document.getElementById('f-st').checked = true;
+  if (document.getElementById('f-tr')) document.getElementById('f-tr').checked = true;
+  if (document.getElementById('f-price')) document.getElementById('f-price').value = 10000000;
+  if (document.getElementById('f-price-lbl')) document.getElementById('f-price-lbl').textContent = 'Max 10 000 000 €';
+  if (document.getElementById('rt-0')) document.getElementById('rt-0').checked = true;
+  document.querySelectorAll('.f-rating-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('.f-rating-btn[data-r="0"]')?.classList.add('on');
+  if (document.getElementById('sort-by')) document.getElementById('sort-by').value = 'def';
+  lcPopulateGeoSelects();
+  filterCards();
+}
+
+function lcRenderActiveTags() {
+  const af = document.getElementById('lc-active-tags');
+  if (!af) return;
+  const country = document.getElementById('f-country')?.value || '';
+  const city    = document.getElementById('f-city')?.value || '';
+  const reg     = window._lcActiveRegion || '';
+  const maxP    = parseInt(document.getElementById('f-price')?.value) || 10000000;
+  const minR    = parseFloat(document.querySelector('input[name="rt"]:checked')?.value) || 0;
+  const tags = [];
+  if (reg)       tags.push({l:'🌍 '+reg,     clear:()=>{ lcSetRegion(document.querySelector('.f-region-chip[data-region=""]')); }});
+  if (country)   tags.push({l:'🏳️ '+country,  clear:()=>{ document.getElementById('f-country').value=''; lcPopulateCitySel(''); filterCards(); }});
+  if (city)      tags.push({l:'🏙️ '+city,     clear:()=>{ document.getElementById('f-city').value=''; filterCards(); }});
+  if (maxP<10000000) tags.push({l:'Max '+maxP.toLocaleString()+'€', clear:()=>{ document.getElementById('f-price').value=10000000; document.getElementById('f-price-lbl').textContent='Max 10 000 000 €'; filterCards(); }});
+  if (minR>0)    tags.push({l:'★ '+minR+'+', clear:()=>{ lcSetRating(0, document.querySelector('.f-rating-btn[data-r="0"]')); }});
+  window._lcTagFns = tags.map(t => t.clear);
+  af.innerHTML = tags.map((t,i) =>
+    `<span class="f-active-tag">${t.l}<button onclick="window._lcTagFns[${i}]()" aria-label="Retirer">×</button></span>`
+  ).join('');
+}
+
+// Init geo selects dès que filterCards a chargé les données
+(function lcGeoInit() {
+  let tries = 0;
+  const interval = setInterval(() => {
+    tries++;
+    const all = lcGetListings();
+    if (all.length > 0) {
+      window.lcAllListings = all;
+      lcPopulateGeoSelects();
+      clearInterval(interval);
+    }
+    if (tries > 20) clearInterval(interval);
+  }, 600);
+})();
+// FIN GEO HELPERS
+
+// ═══════════════════════════════════════════════════════════════
+// PANNEAU FILTRE FLOTTANT CARTE — LOGICONNECT
+// ═══════════════════════════════════════════════════════════════
+
+window._lcMapPanelRegion = '';
+window._lcMapPanelRating = 0;
+
+function lcMapFilterToggleCollapse() {
+  var panel = document.getElementById('lc-map-filter-panel');
+  if (panel) panel.classList.toggle('collapsed');
+}
+
+function lcMapPanelSetRegion(chip) {
+  document.querySelectorAll('#lc-map-filter-panel .lc-mf-chip').forEach(function(c){ c.classList.remove('on'); });
+  chip.classList.add('on');
+  window._lcMapPanelRegion = chip.dataset.region || '';
+  // Reset pays/ville
+  var cSel = document.getElementById('lc-mf-country');
+  var vSel = document.getElementById('lc-mf-city');
+  if (cSel) cSel.value = '';
+  if (vSel) vSel.value = '';
+  lcMapPanelPopulateCountries();
+  lcMapPanelChanged();
+}
+
+function lcMapPanelSetRating(r, btn) {
+  document.querySelectorAll('.lc-mf-rating-btn').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  window._lcMapPanelRating = parseFloat(r) || 0;
+  lcMapPanelChanged();
+}
+
+function lcMapPanelPopulateCountries() {
+  var all = lcGetListings();
+  var reg = window._lcMapPanelRegion || '';
+  var cSel = document.getElementById('lc-mf-country');
+  if (!cSel) return;
+  var prev = cSel.value;
+  var countries = Array.from(new Set(
+    all.filter(function(l){ return !reg || (l.region || lcGuessRegion(l.loc||'')) === reg; })
+       .map(function(l){ return l.country || (l.loc||'').split(',').pop()?.trim() || ''; })
+       .filter(Boolean)
+  )).sort();
+  cSel.innerHTML = '<option value="">Tous les pays</option>';
+  countries.forEach(function(c){
+    var flag = (all.find(function(l){ return (l.country||'').toLowerCase() === c.toLowerCase(); }) || {}).flag || '';
+    var o = document.createElement('option');
+    o.value = c; o.textContent = (flag ? flag + ' ' : '') + c;
+    cSel.appendChild(o);
+  });
+  if (countries.map(function(c){ return c.toLowerCase(); }).includes(prev.toLowerCase())) cSel.value = prev;
+  lcMapPanelPopulateCities(cSel.value);
+}
+
+function lcMapPanelPopulateCities(country) {
+  var all = lcGetListings();
+  var vSel = document.getElementById('lc-mf-city');
+  if (!vSel) return;
+  var prev = vSel.value;
+  var cities = Array.from(new Set(
+    all.filter(function(l){ return !country || (l.country||'').toLowerCase() === country.toLowerCase(); })
+       .map(function(l){ return l.city || (l.loc||'').split(',')[0]?.trim() || ''; })
+       .filter(Boolean)
+  )).sort();
+  vSel.innerHTML = '<option value="">Toutes les villes</option>';
+  cities.forEach(function(c){
+    var o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    vSel.appendChild(o);
+  });
+  if (cities.map(function(c){ return c.toLowerCase(); }).includes(prev.toLowerCase())) vSel.value = prev;
+}
+
+function lcMapPanelCountryChanged() {
+  var country = (document.getElementById('lc-mf-country')?.value) || '';
+  lcMapPanelPopulateCities(country);
+  lcMapPanelChanged();
+}
+
+function lcMapPanelGetFiltered() {
+  var q        = (document.getElementById('lc-mf-query')?.value || '').toLowerCase().trim();
+  var country  = (document.getElementById('lc-mf-country')?.value || '').toLowerCase();
+  var city     = (document.getElementById('lc-mf-city')?.value || '').toLowerCase();
+  var reg      = window._lcMapPanelRegion || '';
+  var stCheck  = document.getElementById('lc-mf-st')?.checked !== false;
+  var trCheck  = document.getElementById('lc-mf-tr')?.checked !== false;
+  var bothOff  = !stCheck && !trCheck;
+  var maxPrice = parseFloat(document.getElementById('lc-mf-price')?.value) || 10000000;
+  var minRat   = parseFloat(window._lcMapPanelRating) || 0;
+  var sortBy   = document.getElementById('lc-mf-sort')?.value || 'def';
+
+  var list = loadOperators().filter(function(l) {
+    if (!l || l.statut === 'en_attente_validation') return false;
+    if (q && String(l.loc||'').toLowerCase().indexOf(q) < 0 && String(l.name||'').toLowerCase().indexOf(q) < 0) return false;
+    if (reg) {
+      var lReg = l.region || lcGuessRegion(l.loc||'');
+      if (lReg !== reg) return false;
+    }
+    if (country && (l.country||'').toLowerCase() !== country) return false;
+    if (city) {
+      var lCity = (l.city || (l.loc||'').split(',')[0]?.trim() || '').toLowerCase();
+      if (lCity !== city) return false;
+    }
+    if (!bothOff) {
+      if (l.type === 'st' && !stCheck) return false;
+      if (l.type === 'tr' && !trCheck) return false;
+    }
+    if ((parseFloat(l.price)||0) > maxPrice) return false;
+    if ((parseFloat(l.r)||0) < minRat) return false;
+    return true;
+  });
+
+  if (sortBy === 'asc')    list.sort(function(a,b){ return (a.price||0)-(b.price||0); });
+  if (sortBy === 'desc')   list.sort(function(a,b){ return (b.price||0)-(a.price||0); });
+  if (sortBy === 'rating') list.sort(function(a,b){ return (b.r||0)-(a.r||0); });
+  return list;
+}
+
+function lcMapPanelChanged() {
+  var list = lcMapPanelGetFiltered();
+  // Mettre à jour le badge
+  var badge = document.getElementById('lc-mf-count-badge');
+  if (badge) badge.textContent = list.length;
+  // Rafraîchir la carte
+  if (window.lcSearchMapState && window.lcSearchMapState.mode === 'map') {
+    lcRefreshSearchMapFromFilters(list);
+  }
+}
+
+function lcMapPanelReset() {
+  window._lcMapPanelRegion = '';
+  window._lcMapPanelRating = 0;
+  document.querySelectorAll('#lc-map-filter-panel .lc-mf-chip').forEach(function(c){ c.classList.remove('on'); });
+  var allChip = document.querySelector('#lc-map-filter-panel .lc-mf-chip[data-region=""]');
+  if (allChip) allChip.classList.add('on');
+  var q = document.getElementById('lc-mf-query'); if (q) q.value = '';
+  var cSel = document.getElementById('lc-mf-country'); if (cSel) cSel.value = '';
+  var vSel = document.getElementById('lc-mf-city'); if (vSel) vSel.value = '';
+  var st = document.getElementById('lc-mf-st'); if (st) st.checked = true;
+  var tr = document.getElementById('lc-mf-tr'); if (tr) tr.checked = true;
+  var pr = document.getElementById('lc-mf-price'); if (pr) pr.value = 10000000;
+  var pl = document.getElementById('lc-mf-price-lbl'); if (pl) pl.textContent = 'Max 10 000 000 €';
+  document.querySelectorAll('.lc-mf-rating-btn').forEach(function(b){ b.classList.remove('on'); });
+  var allRating = document.querySelector('.lc-mf-rating-btn[data-r="0"]'); if (allRating) allRating.classList.add('on');
+  var so = document.getElementById('lc-mf-sort'); if (so) so.value = 'def';
+  lcMapPanelPopulateCountries();
+  lcMapPanelChanged();
+}
+
+// Init le panneau quand les données sont disponibles
+(function lcMapPanelInit() {
+  var tries = 0;
+  var iv = setInterval(function() {
+    tries++;
+    if (lcGetListings().length > 0) {
+      lcMapPanelPopulateCountries();
+      lcMapPanelChanged();
+      clearInterval(iv);
+    }
+    if (tries > 20) clearInterval(iv);
+  }, 700);
+})();
+
+// Aussi rafraîchir à chaque fois qu'on passe en mode carte
+var _lcOrigApplySearchView = typeof lcApplySearchView === 'function' ? lcApplySearchView : null;
+document.addEventListener('DOMContentLoaded', function() {
+  // Patch lcApplySearchView pour aussi mettre à jour le panneau
+  var _orig = window.lcApplySearchView;
+  if (_orig) {
+    window.lcApplySearchView = function() {
+      _orig.apply(this, arguments);
+      if (window.lcSearchMapState && window.lcSearchMapState.mode === 'map') {
+        setTimeout(lcMapPanelChanged, 80);
+      }
+    };
+  }
+});
+
+// ═══════ FIN PANNEAU FILTRE FLOTTANT CARTE ═══════
 </script>
 </body></html>
 
