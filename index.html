@@ -455,6 +455,9 @@ nav{position:fixed;top:56px;left:0;right:0;z-index:800;
 .f-rating-btn.on,.f-rating-btn:hover{background:var(--or);color:#fff;border-color:var(--or);}
 .f-reset-btn{width:100%;padding:7px;border-radius:8px;background:transparent;border:1px solid var(--bd2);font-size:11px;color:var(--mt2);cursor:pointer;transition:all .15s;margin-top:10px;}
 .f-reset-btn:hover{border-color:var(--or);color:var(--or);}
+.f-search-btn,.lc-mf-search-btn{width:100%;padding:8px 12px;border-radius:8px;background:var(--or);border:1px solid var(--or);font-size:12px;font-weight:800;color:#fff;cursor:pointer;transition:all .15s;margin-top:8px;}
+.f-search-btn:hover,.lc-mf-search-btn:hover{filter:brightness(1.06);transform:translateY(-1px);}
+.lc-mf-search-btn{padding:7px 10px;font-size:10px;margin-top:6px;}
 /* TOOLBAR RÉSULTATS */
 .res-toolbar{display:flex;align-items:center;gap:8px;padding:12px 0 14px;flex-wrap:wrap;}
 .res-search-wrap{flex:1;min-width:120px;position:relative;display:flex;align-items:center;}
@@ -547,7 +550,32 @@ nav{position:fixed;top:56px;left:0;right:0;z-index:800;
 #page-search.search-choice-active .lc-booking-searchbar{display:none!important;}
 #page-search.search-choice-active .lc-search-map-wrap,
 #page-search.search-choice-active .search-body,
-#page-search.search-choice-active .mobile-filter-toggle{display:none!important;}
+#page-search.search-choice-active .mobile-filter-toggle,
+#page-search.search-choice-active .lc-search-mode-bar{display:none!important;}
+.lc-search-mode-bar{
+  display:none;position:fixed;top:142px;left:50%;transform:translateX(-50%);
+  width:min(980px,calc(100vw - 28px));z-index:730;
+  background:rgba(8,8,8,.93);border:1px solid rgba(42,42,42,.88);
+  border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.42);
+  padding:8px 10px;align-items:center;justify-content:space-between;gap:10px;
+  backdrop-filter:blur(12px);
+}
+#page-search.search-map-active .lc-search-mode-bar,
+#page-search.search-list-active .lc-search-mode-bar{display:flex;}
+.lc-search-mode-copy{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.lc-search-mode-kicker{
+  font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#8E8E8E;
+}
+.lc-search-mode-title{font-size:12px;font-weight:700;color:#F3F3F3;line-height:1.3;}
+.lc-search-mode-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto;}
+.lc-search-mode-btn{
+  background:#131313;border:1px solid #2A2A2A;color:#fff;border-radius:10px;
+  padding:10px 12px;font-size:11px;font-weight:900;white-space:nowrap;
+  cursor:pointer;transition:all .15s;
+}
+.lc-search-mode-btn:hover{border-color:#FF4D00;color:#FF4D00;}
+.lc-search-mode-btn.lc-map-toggle{background:#FF4D00;border-color:#FF4D00;color:#fff;}
+.lc-search-mode-btn.lc-map-toggle:hover{filter:brightness(1.06);}
 .lc-booking-searchbar{
   display:none;position:fixed;top:142px;left:50%;transform:translateX(-50%);
   width:min(1120px,calc(100vw - 32px));z-index:720;
@@ -698,6 +726,12 @@ body.lc-home-active #nav-dashboard-btn{display:none!important;}
   .lc-booking-searchbar .lc-map-counter{width:100%;text-align:center;}
   .lc-search-map-wrap{height:calc(100dvh - 72px);min-height:500px;}
   #page-search.search-list-active .search-body{padding-top:0;}
+  .lc-search-mode-bar{
+    top:122px;width:calc(100vw - 16px);padding:7px 8px;flex-direction:column;align-items:stretch;
+  }
+  .lc-search-mode-actions{width:100%;margin-left:0;}
+  .lc-search-mode-btn{flex:1;padding:10px 10px;}
+  .lc-search-mode-title{font-size:11px;}
   .lc-booking-popup .leaflet-popup-content{width:min(320px,calc(100vw - 34px))!important;}
   .leaflet-popup{max-width:calc(100vw - 22px);}
 }
@@ -3744,6 +3778,16 @@ goPage = function goPage(name, btn) {
     <select id="lc-map-type" style="display:none"></select>
     <span id="lc-map-count" style="display:none">0</span>
   </div>
+  <div class="lc-search-mode-bar" id="lc-search-mode-bar">
+    <div class="lc-search-mode-copy">
+      <div class="lc-search-mode-kicker">Vue synchronisée</div>
+      <div class="lc-search-mode-title">Les mêmes filtres restent actifs sur la carte et la liste.</div>
+    </div>
+    <div class="lc-search-mode-actions">
+      <button type="button" id="lc-map-toggle" class="lc-search-mode-btn lc-map-toggle" onclick="lcToggleSearchView()" aria-pressed="false">🗺️ Carte</button>
+      <button type="button" class="lc-search-mode-btn lc-search-locate-btn" onclick="lcLocateMe()">📍 Me localiser</button>
+    </div>
+  </div>
   <div class="lc-search-map-wrap" id="lc-search-map-wrap">
     <div id="lc-search-map"></div>
     <div class="lc-map-loading" id="lc-map-loading">Chargement de la carte...</div>
@@ -3763,8 +3807,9 @@ goPage = function goPage(name, btn) {
           <div class="lc-mf-section-title">Rechercher</div>
           <div class="lc-mf-search-wrap">
             <span class="lc-mf-search-icon">🔍</span>
-            <input class="lc-mf-search-inp" id="lc-mf-query" type="text" placeholder="Lieu, nom..." oninput="lcMapPanelChanged()">
+            <input class="lc-mf-search-inp" id="lc-mf-query" type="text" placeholder="Mot-clé, pays, ville..." oninput="lcMapPanelChanged()">
           </div>
+          <button type="button" class="lc-mf-search-btn" onclick="lcValidateSearchFilters('map')">Rechercher les annonces</button>
         </div>
         <div class="lc-mf-divider"></div>
         <!-- Région -->
@@ -3840,6 +3885,15 @@ goPage = function goPage(name, btn) {
   </button>
   <div class="search-body">
     <div class="filters">
+      <!-- RECHERCHE PAR MOT (même modèle que le panneau carte) -->
+      <div class="f-sec">
+        <div class="f-sec-title">🔍 Rechercher</div>
+        <div class="lc-mf-search-wrap">
+          <span class="lc-mf-search-icon">🔍</span>
+          <input class="lc-mf-search-inp" id="f-query" type="text" placeholder="Mot-clé, pays, ville..." oninput="filterCards()">
+        </div>
+        <button type="button" class="f-search-btn" onclick="lcValidateSearchFilters('list')">Rechercher les annonces</button>
+      </div>
       <!-- RÉGION -->
       <div class="f-sec">
         <div class="f-sec-title">🌍 Région du monde</div>
@@ -4537,7 +4591,7 @@ goPage = function goPage(name, btn) {
     </div>
     <div class="card" style="display:none" onclick="expandCard(event, 'op7')">
       <div class="card-img">
-        <img src="https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=600&amp;q=80" alt="Chambre froide Agadir" loading="lazy" onerror="this.style.display='none'">
+        <img src="https://images.unsplash.com/photo-1671656202170-d382ace43d3c?w=600&amp;q=80" alt="Chambre froide Agadir" loading="lazy" onerror="this.style.display='none'">
         <div class="card-img-overlay"></div>
         <span class="ctag st">🏭 Stockage</span>
         
@@ -9573,8 +9627,10 @@ let operators = loadOperators();
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const TRANSPORT_PHOTOS = [
   'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80', // camion autoroute
+  'https://images.unsplash.com/photo-1720811559436-9523b136e743?w=600&q=80', // flotte de semi-remorques
   'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&q=80', // semi-remorque route
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', // camion blanc
+  'https://images.unsplash.com/photo-1601467995997-ac1ae9a8fff4?w=600&q=80', // camion blanc entrepôt
+  'https://images.unsplash.com/photo-1733662095268-7a88cb5fa10e?w=600&q=80', // camion de livraison en ville
   'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80', // livraison urbaine
   'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80', // camion route
   'https://images.unsplash.com/photo-1510166089176-6c2adeb1f9c1?w=600&q=80', // transport nuit
@@ -9587,17 +9643,38 @@ const STORAGE_PHOTOS = [
   'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=600&q=80', // logistique pro
   'https://images.unsplash.com/photo-1565891741441-64926e441838?w=600&q=80', // palettes stockage
 ];
+// Photos dédiées chambre froide / stockage réfrigéré (détectées par mots-clés)
+const COLD_STORAGE_PHOTOS = [
+  'https://images.unsplash.com/photo-1671656202170-d382ace43d3c?w=600&q=80', // quai de chargement entrepôt frigorifique
+  'https://images.unsplash.com/photo-1551313158-73d016a829ae?w=600&q=80', // portes industrielles chambre froide
+  'https://images.unsplash.com/photo-1684089148750-5e9112cd3373?w=600&q=80', // caisses de denrées en stockage réfrigéré
+  'https://images.unsplash.com/photo-1662320154145-7263e998e7a2?w=600&q=80', // couloir frigorifique métallique
+];
+const COLD_STORAGE_KEYWORDS = ['froid','frigo','frigorifi','réfrigér','refrigere','congel','surgel','glacé','glace','agro','0-4','0°c','frais'];
+
+function lcListingSignalText(listing) {
+  return [
+    listing.name,
+    listing.type_espace,
+    listing.disponibilite,
+    Array.isArray(listing.chips) ? listing.chips.join(' ') : '',
+    listing.description
+  ].filter(Boolean).join(' ').toLowerCase();
+}
 
 function getListingPhoto(listing) {
   listing = listing || {};
   if (listing.photo && String(listing.photo).trim()) return listing.photo;
   // Use listing id as stable seed for consistent photo per listing
-  const seed = listing.id ? listing.id.split('').reduce((a,c)=>a+c.charCodeAt(0),0) : 0;
+  const seed = listing.id ? String(listing.id).split('').reduce((a,c)=>a+c.charCodeAt(0),0) : 0;
   if (listing.type === 'tr') {
     return TRANSPORT_PHOTOS[seed % TRANSPORT_PHOTOS.length];
-  } else {
-    return STORAGE_PHOTOS[seed % STORAGE_PHOTOS.length];
   }
+  const signal = lcListingSignalText(listing);
+  if (COLD_STORAGE_KEYWORDS.some(k => signal.includes(k))) {
+    return COLD_STORAGE_PHOTOS[seed % COLD_STORAGE_PHOTOS.length];
+  }
+  return STORAGE_PHOTOS[seed % STORAGE_PHOTOS.length];
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -9925,19 +10002,171 @@ function formatPrice(price, loc) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const listings = operators;
 
+window._lcSearchFiltersState = window._lcSearchFiltersState || null;
+
+function lcNormalizeSearchText(value) {
+  var text = String(value || '').trim().toLowerCase();
+  try { text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch(e) {}
+  return text;
+}
+
+function lcSearchTokens(value) {
+  return lcNormalizeSearchText(value).split(/[\s,;|/\\-]+/).filter(Boolean);
+}
+
+function lcListingSearchText(l) {
+  return [
+    l && l.name,
+    l && l.loc,
+    l && l.city,
+    l && l.ville,
+    l && l.country,
+    l && l.pays,
+    l && l.pays_creation,
+    l && l.region,
+    l && l.description,
+    l && l.service,
+    l && l.unit,
+    Array.isArray(l && l.chips) ? l.chips.join(' ') : (l && l.chips ? String(l.chips) : ''),
+    l && (l.type === 'tr' ? 'transport' : l.type === 'st' ? 'stockage' : '')
+  ].filter(Boolean).join(' ');
+}
+
+function lcSearchMatchesListing(l, query) {
+  var tokens = lcSearchTokens(query);
+  if (!tokens.length) return true;
+  var haystack = lcNormalizeSearchText(lcListingSearchText(l));
+  return tokens.every(function(token) { return haystack.indexOf(token) >= 0; });
+}
+
+function lcReadSearchFilters(source) {
+  var isMap = source === 'map';
+  var cEl = document.getElementById(isMap ? 'lc-mf-country' : 'f-country');
+  var vEl = document.getElementById(isMap ? 'lc-mf-city' : 'f-city');
+  var stEl = document.getElementById(isMap ? 'lc-mf-st' : 'f-st');
+  var trEl = document.getElementById(isMap ? 'lc-mf-tr' : 'f-tr');
+  var pEl = document.getElementById(isMap ? 'lc-mf-price' : 'f-price');
+  var sEl = document.getElementById(isMap ? 'lc-mf-sort' : 'sort-by');
+  var typeEl = document.getElementById('search-type');
+  var minRating = isMap
+    ? (parseFloat(window._lcMapPanelRating) || 0)
+    : (parseFloat(document.querySelector('input[name="rt"]:checked')?.value) || 0);
+
+  return {
+    source: isMap ? 'map' : 'list',
+    query: ((document.getElementById(isMap ? 'lc-mf-query' : 'f-query')?.value || document.getElementById(isMap ? 'lc-map-query' : 'search-loc')?.value || '')).trim(),
+    country: (cEl?.value || '').trim(),
+    city: (vEl?.value || '').trim(),
+    region: isMap ? (window._lcMapPanelRegion || '') : (window._lcActiveRegion || ''),
+    st: stEl ? stEl.checked !== false : true,
+    tr: trEl ? trEl.checked !== false : true,
+    maxPrice: parseFloat(pEl?.value) || 10000000,
+    minRating: minRating,
+    sortBy: sEl?.value || 'def',
+    typeF: typeEl?.value || ''
+  };
+}
+
+function lcSyncSearchFiltersToUi(filters) {
+  if (!filters) return;
+  window._lcSearchFiltersState = filters;
+  var query = filters.query || '';
+  var country = filters.country || '';
+  var city = filters.city || '';
+  var region = filters.region || '';
+  var maxPrice = parseFloat(filters.maxPrice) || 10000000;
+  var minRating = parseFloat(filters.minRating) || 0;
+  var sortBy = filters.sortBy || 'def';
+
+  window._lcActiveRegion = region;
+  window._lcMapPanelRegion = region;
+  window._lcMapPanelRating = minRating;
+  if (typeof lcPopulateGeoSelects === 'function') lcPopulateGeoSelects();
+  if (typeof lcMapPanelPopulateCountries === 'function') lcMapPanelPopulateCountries();
+
+  var listQ = document.getElementById('f-query'); if (listQ) listQ.value = query;
+  var listC = document.getElementById('f-country'); if (listC) listC.value = country;
+  if (typeof lcPopulateCitySel === 'function') lcPopulateCitySel(country);
+  var listV = document.getElementById('f-city'); if (listV) listV.value = city;
+  var listSt = document.getElementById('f-st'); if (listSt) listSt.checked = filters.st !== false;
+  var listTr = document.getElementById('f-tr'); if (listTr) listTr.checked = filters.tr !== false;
+  var listP = document.getElementById('f-price'); if (listP) listP.value = maxPrice;
+  var listPL = document.getElementById('f-price-lbl'); if (listPL) listPL.textContent = 'Max ' + parseInt(maxPrice, 10).toLocaleString() + ' €';
+  var listS = document.getElementById('sort-by'); if (listS) listS.value = sortBy;
+  var typeSel = document.getElementById('search-type'); if (typeSel) typeSel.value = filters.typeF || '';
+  document.querySelectorAll('.f-region-chip').forEach(function(chip) { chip.classList.toggle('on', (chip.dataset.region || '') === region); });
+  document.querySelectorAll('.f-rating-btn').forEach(function(btn) { btn.classList.toggle('on', String(btn.dataset.r || '0') === String(minRating)); });
+  document.querySelectorAll('input[name="rt"]').forEach(function(radio) { radio.checked = String(parseFloat(radio.value || '0')) === String(minRating); });
+
+  var legacyQ = document.getElementById('lc-map-query'); if (legacyQ) legacyQ.value = query;
+  var legacyT = document.getElementById('lc-map-type'); if (legacyT) legacyT.value = filters.typeF || '';
+  var oldQ = document.getElementById('search-loc'); if (oldQ) oldQ.value = query;
+  var oldT = document.getElementById('search-type'); if (oldT) oldT.value = filters.typeF || '';
+
+  var mapQ = document.getElementById('lc-mf-query'); if (mapQ) mapQ.value = query;
+  var mapC = document.getElementById('lc-mf-country'); if (mapC) mapC.value = country;
+  if (typeof lcMapPanelPopulateCities === 'function') lcMapPanelPopulateCities(country);
+  var mapV = document.getElementById('lc-mf-city'); if (mapV) mapV.value = city;
+  var mapSt = document.getElementById('lc-mf-st'); if (mapSt) mapSt.checked = filters.st !== false;
+  var mapTr = document.getElementById('lc-mf-tr'); if (mapTr) mapTr.checked = filters.tr !== false;
+  var mapP = document.getElementById('lc-mf-price'); if (mapP) mapP.value = maxPrice;
+  var mapPL = document.getElementById('lc-mf-price-lbl'); if (mapPL) mapPL.textContent = 'Max ' + parseInt(maxPrice, 10).toLocaleString() + ' €';
+  var mapS = document.getElementById('lc-mf-sort'); if (mapS) mapS.value = sortBy;
+  document.querySelectorAll('#lc-map-filter-panel .lc-mf-chip').forEach(function(chip) { chip.classList.toggle('on', (chip.dataset.region || '') === region); });
+  document.querySelectorAll('.lc-mf-rating-btn').forEach(function(btn) { btn.classList.toggle('on', String(btn.dataset.r || '0') === String(minRating)); });
+}
+
+function lcFilterListingsWithFilters(filters, items) {
+  var query = filters && filters.query ? filters.query : '';
+  var country = lcNormalizeSearchText(filters && filters.country);
+  var city = lcNormalizeSearchText(filters && filters.city);
+  var region = lcNormalizeSearchText(filters && filters.region);
+  var typeF = filters && filters.typeF ? filters.typeF : '';
+  var stCheck = filters ? filters.st !== false : true;
+  var trCheck = filters ? filters.tr !== false : true;
+  var bothUnchecked = !stCheck && !trCheck;
+  var maxPrice = isFinite(filters && filters.maxPrice) ? filters.maxPrice : 10000000;
+  var minRating = isFinite(filters && filters.minRating) ? filters.minRating : 0;
+  var sortBy = (filters && filters.sortBy) || 'def';
+
+  var filtered = (items || []).filter(function(l) {
+    if (!l || l.statut === 'en_attente_validation') return false;
+    if (query && !lcSearchMatchesListing(l, query)) return false;
+    if (country && lcNormalizeSearchText(lcDeriveCountry(l)) !== country) return false;
+    if (city && lcNormalizeSearchText(lcDeriveCity(l)) !== city) return false;
+    if (region) {
+      var lRegion = lcNormalizeSearchText(l.region || lcGuessRegion(l.loc || ''));
+      if (lRegion !== region) return false;
+    }
+    if (typeF && l.type !== typeF) return false;
+    if (!bothUnchecked) {
+      if (l.type === 'st' && !stCheck) return false;
+      if (l.type === 'tr' && !trCheck) return false;
+    }
+    if ((parseFloat(l.price) || 0) > maxPrice) return false;
+    if ((parseFloat(l.r) || 0) < minRating) return false;
+    return true;
+  });
+
+  if (sortBy === 'asc')    filtered.sort(function(a,b){ return (a.price || 0) - (b.price || 0); });
+  if (sortBy === 'desc')   filtered.sort(function(a,b){ return (b.price || 0) - (a.price || 0); });
+  if (sortBy === 'rating') filtered.sort(function(a,b){ return (b.r || 0) - (a.r || 0); });
+  if (sortBy === 'new')    filtered.sort(function(a,b){ return new Date(b.created_at || 0) - new Date(a.created_at || 0); });
+  return filtered;
+}
+
+function lcValidateSearchFilters(source) {
+  if (source === 'map') {
+    lcMapPanelChanged();
+  } else {
+    filterCards();
+  }
+}
+
 async function filterCards() {
-  const loc      = (document.getElementById('search-loc')?.value || '').toLowerCase();
-  const typeF    = document.getElementById('search-type')?.value || '';
-  const stCheck  = document.getElementById('f-st')?.checked;
-  const trCheck  = document.getElementById('f-tr')?.checked;
-  const bothUnchecked = !stCheck && !trCheck;
-  const maxPrice = parseFloat(document.getElementById('f-price')?.value) || 10000000;
-  const minRat   = parseFloat(document.querySelector('input[name="rt"]:checked')?.value) || 0;
-  const sortBy   = document.getElementById('sort-by')?.value || 'def';
-  // GEO FILTERS
-  const fCountry = (document.getElementById('f-country')?.value || '').toLowerCase().trim();
-  const fCity    = (document.getElementById('f-city')?.value || '').toLowerCase().trim();
-  const fRegion  = window._lcActiveRegion || '';
+  const filters = lcReadSearchFilters('list');
+  window._lcSearchFiltersState = filters;
+  lcSyncSearchFiltersToUi(filters);
 
   // Recharge toujours depuis localStorage
   operators = loadOperators();
@@ -9949,38 +10178,7 @@ async function filterCards() {
     operators = loadOperators();
   }
 
-  let filtered = operators.filter(l => {
-    // Masquer les annonces en attente de validation admin
-    if (l.statut === 'en_attente_validation') return false;
-    if (loc && !l.loc.toLowerCase().includes(loc) && !l.name.toLowerCase().includes(loc)) return false;
-    // GEO : pays / ville / région
-    if (fCountry) {
-      const lc = (l.country || l.loc || '').toLowerCase();
-      if (!lc.includes(fCountry)) return false;
-    }
-    if (fCity) {
-      const lci = (l.city || l.loc || '').toLowerCase();
-      if (!lci.includes(fCity)) return false;
-    }
-    if (fRegion) {
-      const lr = (l.region || lcGuessRegion(l.loc || '')).toLowerCase();
-      if (lr !== fRegion) return false;
-    }
-    if (typeF && l.type !== typeF) return false;
-    // Si aucune case n\'est cochée, afficher tout ; sinon filtrer
-    if (!bothUnchecked) {
-      if (l.type === 'st' && !stCheck) return false;
-      if (l.type === 'tr' && !trCheck) return false;
-    }
-    if (l.price > maxPrice) return false;
-    if (l.r < minRat) return false;
-    return true;
-  });
-
-  if (sortBy === 'asc')    filtered.sort((a,b) => a.price - b.price);
-  if (sortBy === 'desc')   filtered.sort((a,b) => b.price - a.price);
-  if (sortBy === 'rating') filtered.sort((a,b) => b.r - a.r);
-  if (sortBy === 'new') filtered.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+  let filtered = lcFilterListingsWithFilters(filters, operators);
   if (typeof lcPrimeSearchListingCache === 'function') lcPrimeSearchListingCache(filtered);
   if (typeof lcRenderActiveTags === 'function') lcRenderActiveTags();
 
@@ -10211,7 +10409,12 @@ function lcDrawTransportRoute(route, layer) {
 }
 
 function lcMapFilteredOperators() {
-  var loc = (document.getElementById('search-loc')?.value || '').toLowerCase();
+  // Délègue au panneau de filtres flottant de la carte, qui est désormais
+  // la source unique de vérité (pays/ville/recherche/type/prix/note).
+  if (typeof lcMapPanelGetFiltered === 'function') {
+    try { return lcMapPanelGetFiltered(); } catch(e) {}
+  }
+  var loc = (document.getElementById('lc-mf-query')?.value || document.getElementById('search-loc')?.value || '').toLowerCase();
   var typeF = document.getElementById('search-type')?.value || '';
   var stCheck = document.getElementById('f-st')?.checked;
   var trCheck = document.getElementById('f-tr')?.checked;
@@ -10381,6 +10584,11 @@ async function lcCenterMapOnSearch() {
 }
 
 function lcLocateMe() {
+  if (lcSearchMapState.mode !== 'map') {
+    lcSearchMapState.mode = 'map';
+    localStorage.setItem('lc_search_view_mode', 'map');
+    lcApplySearchView();
+  }
   if (!navigator.geolocation) {
     showNotif('Info', 'GPS indisponible', 'Votre navigateur ne permet pas la localisation.');
     return;
@@ -10405,7 +10613,12 @@ function lcApplySearchView() {
   pg.classList.toggle('search-choice-active', isChoice);
   pg.classList.toggle('search-map-active', lcSearchMapState.mode === 'map');
   pg.classList.toggle('search-list-active', lcSearchMapState.mode === 'list');
-  if (btn) btn.textContent = lcSearchMapState.mode === 'map' ? '📋 Liste' : '🗺️ Carte';
+  if (btn) {
+    btn.textContent = lcSearchMapState.mode === 'map' ? '📋 Liste' : '🗺️ Carte';
+    btn.setAttribute('aria-pressed', lcSearchMapState.mode === 'map' ? 'true' : 'false');
+    btn.title = lcSearchMapState.mode === 'map' ? 'Passer à la liste' : 'Passer à la carte';
+  }
+  if (window._lcSearchFiltersState) lcSyncSearchFiltersToUi(window._lcSearchFiltersState);
   if (isChoice) {
     lcRefreshSearchMapFromFilters(lcMapFilteredOperators());
     return;
@@ -16276,6 +16489,28 @@ function lcGuessRegion(loc) {
   return '';
 }
 
+// ── SOURCE UNIQUE DE VÉRITÉ pour pays/ville ──
+// Utilisé à la fois pour remplir les listes déroulantes ET pour filtrer
+// (liste + carte) afin que les deux soient toujours cohérents.
+function lcDeriveCountry(l) {
+  if (!l) return '';
+  if (l.country) return String(l.country).trim();
+  if (l.pays) return String(l.pays).trim();
+  if (l.pays_creation) return String(l.pays_creation).trim();
+  const loc = String(l.loc || '');
+  if (loc.includes(',')) return loc.split(',').pop().trim();
+  return '';
+}
+function lcDeriveCity(l) {
+  if (!l) return '';
+  if (l.city) return String(l.city).trim();
+  if (l.ville) return String(l.ville).trim();
+  const loc = String(l.loc || '');
+  if (loc.includes(',')) return loc.split(',')[0].trim();
+  if (loc.includes('→')) return loc.split('→')[0].trim();
+  return loc.trim();
+}
+
 function lcGetListings() {
   return window.lcAllListings || window.operators || (typeof loadOperators === 'function' ? loadOperators() : []) || [];
 }
@@ -16290,12 +16525,12 @@ function lcPopulateGeoSelects() {
   const prevC = cSel.value;
   const countries = [...new Set(
     all.filter(l => !reg || (l.region || lcGuessRegion(l.loc||'')) === reg)
-       .map(l => l.country || (l.loc||'').split(',').pop()?.trim() || '')
+       .map(l => lcDeriveCountry(l))
        .filter(Boolean)
   )].sort();
   cSel.innerHTML = '<option value="">Tous les pays</option>';
   countries.forEach(c => {
-    const flag = all.find(l => (l.country||'').toLowerCase() === c.toLowerCase())?.flag || '';
+    const flag = all.find(l => lcDeriveCountry(l).toLowerCase() === c.toLowerCase())?.flag || '';
     const o = document.createElement('option');
     o.value = c; o.textContent = (flag ? flag + ' ' : '') + c;
     cSel.appendChild(o);
@@ -16312,8 +16547,8 @@ function lcPopulateCitySel(country) {
   if (!vSel) return;
   const prevV = vSel.value;
   const cities = [...new Set(
-    all.filter(l => !country || (l.country||'').toLowerCase() === country.toLowerCase())
-       .map(l => l.city || (l.loc||'').split(',')[0]?.trim() || '')
+    all.filter(l => !country || lcDeriveCountry(l).toLowerCase() === country.toLowerCase())
+       .map(l => lcDeriveCity(l))
        .filter(Boolean)
   )].sort();
   vSel.innerHTML = '<option value="">Toutes les villes</option>';
@@ -16358,6 +16593,7 @@ function lcSetCardView(v) {
 
 function lcResetFilters() {
   window._lcActiveRegion = '';
+  if (document.getElementById('f-query')) document.getElementById('f-query').value = '';
   document.querySelectorAll('.f-region-chip').forEach(c => c.classList.remove('on'));
   document.querySelector('.f-region-chip[data-region=""]')?.classList.add('on');
   if (document.getElementById('f-country')) document.getElementById('f-country').value = '';
@@ -16377,12 +16613,15 @@ function lcResetFilters() {
 function lcRenderActiveTags() {
   const af = document.getElementById('lc-active-tags');
   if (!af) return;
-  const country = document.getElementById('f-country')?.value || '';
-  const city    = document.getElementById('f-city')?.value || '';
-  const reg     = window._lcActiveRegion || '';
-  const maxP    = parseInt(document.getElementById('f-price')?.value) || 10000000;
-  const minR    = parseFloat(document.querySelector('input[name="rt"]:checked')?.value) || 0;
+  const filters = window._lcSearchFiltersState || lcReadSearchFilters('list');
+  const q       = (filters.query || '').trim();
+  const country = filters.country || '';
+  const city    = filters.city || '';
+  const reg     = filters.region || '';
+  const maxP    = parseInt(filters.maxPrice) || 10000000;
+  const minR    = parseFloat(filters.minRating) || 0;
   const tags = [];
+  if (q)         tags.push({l:'🔍 '+q,        clear:()=>{ document.getElementById('f-query').value=''; filterCards(); }});
   if (reg)       tags.push({l:'🌍 '+reg,     clear:()=>{ lcSetRegion(document.querySelector('.f-region-chip[data-region=""]')); }});
   if (country)   tags.push({l:'🏳️ '+country,  clear:()=>{ document.getElementById('f-country').value=''; lcPopulateCitySel(''); filterCards(); }});
   if (city)      tags.push({l:'🏙️ '+city,     clear:()=>{ document.getElementById('f-city').value=''; filterCards(); }});
@@ -16450,12 +16689,12 @@ function lcMapPanelPopulateCountries() {
   var prev = cSel.value;
   var countries = Array.from(new Set(
     all.filter(function(l){ return !reg || (l.region || lcGuessRegion(l.loc||'')) === reg; })
-       .map(function(l){ return l.country || (l.loc||'').split(',').pop()?.trim() || ''; })
+       .map(function(l){ return lcDeriveCountry(l); })
        .filter(Boolean)
   )).sort();
   cSel.innerHTML = '<option value="">Tous les pays</option>';
   countries.forEach(function(c){
-    var flag = (all.find(function(l){ return (l.country||'').toLowerCase() === c.toLowerCase(); }) || {}).flag || '';
+    var flag = (all.find(function(l){ return lcDeriveCountry(l).toLowerCase() === c.toLowerCase(); }) || {}).flag || '';
     var o = document.createElement('option');
     o.value = c; o.textContent = (flag ? flag + ' ' : '') + c;
     cSel.appendChild(o);
@@ -16470,8 +16709,8 @@ function lcMapPanelPopulateCities(country) {
   if (!vSel) return;
   var prev = vSel.value;
   var cities = Array.from(new Set(
-    all.filter(function(l){ return !country || (l.country||'').toLowerCase() === country.toLowerCase(); })
-       .map(function(l){ return l.city || (l.loc||'').split(',')[0]?.trim() || ''; })
+    all.filter(function(l){ return !country || lcDeriveCountry(l).toLowerCase() === country.toLowerCase(); })
+       .map(function(l){ return lcDeriveCity(l); })
        .filter(Boolean)
   )).sort();
   vSel.innerHTML = '<option value="">Toutes les villes</option>';
@@ -16490,42 +16729,10 @@ function lcMapPanelCountryChanged() {
 }
 
 function lcMapPanelGetFiltered() {
-  var q        = (document.getElementById('lc-mf-query')?.value || '').toLowerCase().trim();
-  var country  = (document.getElementById('lc-mf-country')?.value || '').toLowerCase();
-  var city     = (document.getElementById('lc-mf-city')?.value || '').toLowerCase();
-  var reg      = window._lcMapPanelRegion || '';
-  var stCheck  = document.getElementById('lc-mf-st')?.checked !== false;
-  var trCheck  = document.getElementById('lc-mf-tr')?.checked !== false;
-  var bothOff  = !stCheck && !trCheck;
-  var maxPrice = parseFloat(document.getElementById('lc-mf-price')?.value) || 10000000;
-  var minRat   = parseFloat(window._lcMapPanelRating) || 0;
-  var sortBy   = document.getElementById('lc-mf-sort')?.value || 'def';
-
-  var list = loadOperators().filter(function(l) {
-    if (!l || l.statut === 'en_attente_validation') return false;
-    if (q && String(l.loc||'').toLowerCase().indexOf(q) < 0 && String(l.name||'').toLowerCase().indexOf(q) < 0) return false;
-    if (reg) {
-      var lReg = l.region || lcGuessRegion(l.loc||'');
-      if (lReg !== reg) return false;
-    }
-    if (country && (l.country||'').toLowerCase() !== country) return false;
-    if (city) {
-      var lCity = (l.city || (l.loc||'').split(',')[0]?.trim() || '').toLowerCase();
-      if (lCity !== city) return false;
-    }
-    if (!bothOff) {
-      if (l.type === 'st' && !stCheck) return false;
-      if (l.type === 'tr' && !trCheck) return false;
-    }
-    if ((parseFloat(l.price)||0) > maxPrice) return false;
-    if ((parseFloat(l.r)||0) < minRat) return false;
-    return true;
-  });
-
-  if (sortBy === 'asc')    list.sort(function(a,b){ return (a.price||0)-(b.price||0); });
-  if (sortBy === 'desc')   list.sort(function(a,b){ return (b.price||0)-(a.price||0); });
-  if (sortBy === 'rating') list.sort(function(a,b){ return (b.r||0)-(a.r||0); });
-  return list;
+  var filters = lcReadSearchFilters('map');
+  window._lcSearchFiltersState = filters;
+  lcSyncSearchFiltersToUi(filters);
+  return lcFilterListingsWithFilters(filters, loadOperators());
 }
 
 function lcMapPanelChanged() {
@@ -16591,7 +16798,3 @@ document.addEventListener('DOMContentLoaded', function() {
 // ═══════ FIN PANNEAU FILTRE FLOTTANT CARTE ═══════
 </script>
 </body></html>
-
-
-
-
