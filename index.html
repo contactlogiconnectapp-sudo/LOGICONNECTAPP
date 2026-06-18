@@ -668,6 +668,16 @@ nav{position:fixed;top:56px;left:0;right:0;z-index:800;
 @media(max-width:768px){
   #lc-map-filter-panel{width:calc(100vw - 32px);top:12px;left:16px;}
   #lc-map-filter-panel.collapsed{width:auto;}
+  #lc-map-filter-header{padding:14px 14px;}
+  .lc-mf-chip{padding:9px 14px;font-size:12px;min-height:36px;display:inline-flex;align-items:center;}
+  .lc-mf-chips{gap:8px;}
+  .lc-mf-rating-btn{padding:9px 12px;font-size:12px;min-height:36px;}
+  .lc-mf-rating-row{gap:8px;}
+  .lc-mf-checkbox{padding:6px 0;font-size:13px;}
+  .lc-mf-checkbox input{width:20px;height:20px;}
+  .lc-mf-select{padding:11px 10px;font-size:13px;}
+  .lc-mf-search-inp{padding:11px 9px 11px 30px;font-size:13px;}
+  .lc-mf-reset{padding:11px;font-size:12px;}
 }
 /* ── FIN PANNEAU FILTRE CARTE ── */
 .lc-map-marker{position:relative;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;}
@@ -751,6 +761,12 @@ body.lc-home-active #nav-dashboard-btn{display:none!important;}
   .res-hdr{gap:10px;flex-wrap:wrap;}
   .cards,#cards-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px;}
   .card:hover{transform:none;}
+  .f-region-chip{padding:9px 14px;font-size:12px;min-height:36px;display:inline-flex;align-items:center;}
+  .f-region-chips{gap:8px;}
+  .f-rating-btn{padding:9px 12px;font-size:12px;min-height:36px;}
+  .f-opt{padding:9px 0;font-size:14px;}
+  .f-opt input{width:20px;height:20px;}
+  .f-geo-sel{padding:11px 10px;font-size:13px;}
 }
 
 /* INSCRIPTION */
@@ -5837,7 +5853,85 @@ function lcQrClientHtml(order) {
 function lcStatusLabel(statut) { return {en_attente_confirmation:'Attente confirmation',en_attente_paiement:'À payer',paiement_a_valider_admin:'Paiement à valider par admin',paye_en_attente_service:'Service en cours',attente_comptabilite:'Preuve QR validée - attente comptabilité',confirme_client:'Réception confirmée',termine:'Terminée',litige:'Litige',refuse:'Refusée',annule_client:'Annulée par client'}[statut] || statut; }
 function lcMarkOrderAwaitingAccounting(order, source) { if (!order) return false; order.statut='attente_comptabilite'; order.date_validation_qr=new Date().toISOString(); order.validation_qr_source=source||'prestataire'; saveOrders(); addActivityLog('qr_service','Preuve QR validée - commande '+order.id+' - attente comptabilité'); return true; }
 function validateServiceQrToken(orderId, token) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order||!token) return false; var clean=String(token).trim(); if(clean.indexOf('LOGICONNECT|')===0){ var parts=clean.split('|'); clean=parts[2]||''; } if(clean!==order.service_token) return false; order.client_qr_confirmed = true; lcMarkOrderAwaitingAccounting(order,'qr_token'); try { saveOrders(); } catch(e) {} showNotif('OK','Preuve validée','Le service est passé en attente comptabilité.'); renderDashboard(); return true; }
-function openServiceQrScanner(orderId) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order) return; var token=prompt('Scanner ou saisir le code secret affiché dans le QR du client :'); if(!token) return; if(!validateServiceQrToken(orderId,token)) showNotif('Erreur','QR invalide','Le code ne correspond pas à cette commande.'); }
+// ✅ Scan camera reel du QR client (transporteur/stockeur) + saisie manuelle / code recu par WhatsApp en repli
+function lcExtractClientQrToken(raw) {
+  var clean = String(raw || '').trim();
+  if (!clean) return '';
+  if (clean.indexOf('LOGICONNECT|') === 0) { var parts = clean.split('|'); return parts[2] || ''; }
+  return clean;
+}
+function openServiceQrScanner(orderId) {
+  var order = escrowOrders.find(function(o){ return o.id === orderId; });
+  if (!order) return;
+  var hasCamera = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.jsQR);
+  var old = document.getElementById('lc-client-cam-scan-modal'); if (old) old.remove();
+  var m = document.createElement('div');
+  m.id = 'lc-client-cam-scan-modal';
+  m.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;';
+  m.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:#fff;text-align:center;">📷 Scanner le QR du client</div>'
+    + '<div style="font-size:12px;color:#888;text-align:center;max-width:320px;">Commande ' + order.id + ' — pointez la caméra vers le QR montré par le client pour confirmer la fin de service.</div>'
+    + (hasCamera
+        ? '<div style="position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--or);"><video id="lc-client-cam-video" playsinline autoplay style="width:min(340px,88vw);height:min(340px,88vw);object-fit:cover;display:block;"></video><canvas id="lc-client-cam-canvas" style="display:none;"></canvas></div>'
+        : '<div style="font-size:12px;color:var(--yw);text-align:center;">Caméra indisponible sur cet appareil — utilisez la saisie manuelle ci-dessous.</div>')
+    + '<div id="lc-client-cam-status" style="font-size:12px;color:var(--mt2);"></div>'
+    + '<div style="width:100%;max-width:340px;background:rgba(255,255,255,.04);border:1px solid var(--bd2);border-radius:12px;padding:12px;">'
+    + '<div style="font-size:11px;color:var(--mt2);margin-bottom:6px;">Code reçu par WhatsApp ou saisie manuelle :</div>'
+    + '<textarea id="lc-client-manual-token" placeholder="Collez ici le code ou le contenu du QR" style="width:100%;min-height:60px;background:var(--c2);border:1px solid var(--bd2);border-radius:8px;color:#fff;padding:8px;font-size:12px;resize:vertical;"></textarea>'
+    + '<button onclick="lcValidateClientQrManual(\'' + order.id + '\')" style="margin-top:8px;width:100%;background:var(--or);color:#fff;border:none;padding:10px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">✅ Valider ce code</button>'
+    + '</div>'
+    + '<button onclick="lcStopClientCamScan()" style="background:rgba(255,59,48,.15);border:1px solid rgba(255,59,48,.4);color:#ff3b30;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fermer</button>';
+  document.body.appendChild(m);
+  if (!hasCamera) return;
+  var video = document.getElementById('lc-client-cam-video');
+  var canvas = document.getElementById('lc-client-cam-canvas');
+  var status = document.getElementById('lc-client-cam-status');
+  var stream = null;
+  var scanning = true;
+  window._lcClientCamStop = function() { scanning = false; if (stream) stream.getTracks().forEach(function(t){ t.stop(); }); };
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function(s) {
+    stream = s;
+    video.srcObject = s;
+    video.play();
+    var ctx = canvas.getContext('2d');
+    function scan() {
+      if (!scanning || !document.getElementById('lc-client-cam-scan-modal')) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+          var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var code = jsQR(img.data, img.width, img.height);
+          if (code && code.data) {
+            scanning = false;
+            if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
+            var modal = document.getElementById('lc-client-cam-scan-modal');
+            if (modal) modal.remove();
+            var token = lcExtractClientQrToken(code.data);
+            if (!validateServiceQrToken(orderId, token)) showNotif('Erreur', 'QR invalide', 'Le code ne correspond pas à cette commande.');
+            return;
+          }
+        } catch(e) {}
+      }
+      if (scanning) requestAnimationFrame(scan);
+    }
+    requestAnimationFrame(scan);
+  }).catch(function(e) {
+    if (status) status.textContent = 'Caméra non disponible : ' + e.message + ' — utilisez la saisie manuelle.';
+  });
+}
+function lcStopClientCamScan() {
+  if (window._lcClientCamStop) window._lcClientCamStop();
+  var m = document.getElementById('lc-client-cam-scan-modal'); if (m) m.remove();
+}
+function lcValidateClientQrManual(orderId) {
+  var el = document.getElementById('lc-client-manual-token');
+  var raw = el ? el.value : '';
+  var token = lcExtractClientQrToken(raw);
+  if (!token) { showNotif('⚠️', 'Code manquant', 'Collez le code ou le contenu du QR transmis par le client.'); return; }
+  if (validateServiceQrToken(orderId, token)) lcStopClientCamScan();
+  else showNotif('Erreur', 'QR invalide', 'Le code ne correspond pas à cette commande.');
+}
 function getDynPaypal()      { return getCfg('lc_cfg_paypal_email', PAYPAL_EMAIL); }
 function getDynPaypalLink()  { return getCfg('lc_cfg_paypal_link', PAYPAL_ME_LINK); }
 function getDynStripeKey()   { return getCfg('lc_cfg_stripe_key', STRIPE_PUBLISHABLE_KEY); }
@@ -7218,7 +7312,10 @@ function adminReleaseFunds(orderId) {
     return;
   }
   if (!order.client_qr_confirmed || !order.provider_qr_confirmed) {
-    showNotif('⚠️', 'Double confirmation requise', 'L\'admin doit disposer des 2 confirmations: code client et code prestataire/GPS avant libération des fonds.');
+    var missing = [];
+    if (!order.client_qr_confirmed) missing.push('le transporteur/stockeur n\'a pas encore scanné/validé le QR du client');
+    if (!order.provider_qr_confirmed) missing.push('le client n\'a pas encore scanné/validé le QR du prestataire');
+    showNotif('⚠️', 'Double confirmation requise', 'Libération impossible : ' + missing.join(' et ') + '. Les deux parties peuvent scanner via la caméra ou échanger le code par WhatsApp.');
     return;
   }
   const cur = order.devise_locale || lcCurrencyForOrder(order);
@@ -10803,6 +10900,13 @@ function lcObLaunch(mode) {
   var fTr = document.getElementById('f-tr');
   if (fSt) fSt.checked = typeFilter === 'st';
   if (fTr) fTr.checked = typeFilter === 'tr';
+  var mfSt = document.getElementById('lc-mf-st');
+  var mfTr = document.getElementById('lc-mf-tr');
+  if (mfSt) mfSt.checked = typeFilter === 'st';
+  if (mfTr) mfTr.checked = typeFilter === 'tr';
+  // ✅ Mémoriser le choix de filtre AVANT de changer de vue, sinon lcApplySearchView()
+  // ré-applique l'ancien état des filtres (tout cochable) et écrase le choix de l'utilisateur.
+  window._lcSearchFiltersState = lcReadSearchFilters(mode === 'map' ? 'map' : 'list');
   lcChooseSearchMode(mode);
 }
 
@@ -11907,6 +12011,10 @@ function renderAdminDash() {
             <div style="text-align:center;border-left:1px solid var(--bd);"><div style="font-size:8px;color:var(--mt);text-transform:uppercase;margin-bottom:2px;">🚚 À virer prest.</div><div style="font-size:13px;font-weight:700;color:var(--gr);">${lcMoney(net, cur)}</div><div style="font-size:8px;color:var(--mt);">${o.service_type==='tr'?'Transporteur':'Stockeur'} · ${lcMoneyUsd(usdNet)}</div></div>
           </div>
           ${adminOrderContextHtml(o, cur)}
+          ${(['attente_comptabilite','confirme_client'].includes(o.statut)) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            <span style="font-size:10px;padding:4px 8px;border-radius:6px;font-weight:700;background:${o.client_qr_confirmed?'rgba(0,230,118,.12)':'rgba(255,59,48,.1)'};color:${o.client_qr_confirmed?'var(--gr)':'var(--rd)'};border:1px solid ${o.client_qr_confirmed?'rgba(0,230,118,.3)':'rgba(255,59,48,.25)'};">${o.client_qr_confirmed?'✅':'⏳'} QR client scanné par prestataire</span>
+            <span style="font-size:10px;padding:4px 8px;border-radius:6px;font-weight:700;background:${o.provider_qr_confirmed?'rgba(0,230,118,.12)':'rgba(255,59,48,.1)'};color:${o.provider_qr_confirmed?'var(--gr)':'var(--rd)'};border:1px solid ${o.provider_qr_confirmed?'rgba(0,230,118,.3)':'rgba(255,59,48,.25)'};">${o.provider_qr_confirmed?'✅':'⏳'} QR prestataire scanné par client</span>
+          </div>` : ''}
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             ${o.statut==='en_attente_confirmation'?`<span style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.22);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;">Attente decision prestataire</span>`:''}
             ${(o.statut==='paiement_a_valider_admin' || (o.statut==='paye_en_attente_service' && !lcCanClientSeeQr(o)))?`<button onclick="adminValidatePayment('${o.id}')" style="background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.35);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">✅ Paiement reçu / lancer service</button>`:''}
@@ -15518,19 +15626,19 @@ function adminSearchByOrder() {
     var old = document.getElementById('lc-rating-modal'); if (old) old.remove();
     var m = document.createElement('div'); m.id = 'lc-rating-modal'; m.className = 'modal open'; m.style.zIndex = '1600';
     m.innerHTML = '<div class="mbox" style="max-width:520px;">'
-      + '<button class="mclose" onclick="document.getElementById('lc-rating-modal').remove()">✕</button>'
+      + '<button class="mclose" onclick="document.getElementById(\'lc-rating-modal\').remove()">✕</button>'
       + '<div class="lc-protect-title">Notez votre expérience</div>'
       + '<div class="lc-protect-muted">Commande ' + lcEsc(order.id) + '</div>'
       + '<div class="lc-rating-stars" id="lc-rating-stars">'
       + [1,2,3,4,5].map(function(n){ return '<button type="button" data-star="' + n + '" onclick="lcSelectRatingStar(' + n + ')">★</button>'; }).join('')
       + '</div>'
       + '<div class="lc-tag-row" id="lc-rating-tags">'
-      + tags.map(function(t){ return '<button type="button" onclick="this.classList.toggle('on')">' + lcEsc(t) + '</button>'; }).join('')
+      + tags.map(function(t){ return '<button type="button" onclick="this.classList.toggle(\'on\')">' + lcEsc(t) + '</button>'; }).join('')
       + '</div>'
       + '<div class="lc-protect-field"><label>Commentaire optionnel</label><textarea id="lc-rating-comment" maxlength="300" placeholder="Commentaire max 300 caractères"></textarea></div>'
       + '<div style="display:flex;gap:8px;margin-top:12px;">'
-      + '<button onclick="lcSubmitRating('' + order.id + '')" style="background:var(--or);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;cursor:pointer;flex:2;">⭐ Envoyer ma note</button>'
-      + '<button onclick="document.getElementById('lc-rating-modal').remove()" style="flex:1;background:var(--c3);border:1px solid var(--bd2);color:var(--mt2);padding:12px;border-radius:10px;font-weight:600;cursor:pointer;">Annuler</button>'
+      + '<button onclick="lcSubmitRating(\'' + order.id + '\')" style="background:var(--or);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;cursor:pointer;flex:2;">⭐ Envoyer ma note</button>'
+      + '<button onclick="document.getElementById(\'lc-rating-modal\').remove()" style="flex:1;background:var(--c3);border:1px solid var(--bd2);color:var(--mt2);padding:12px;border-radius:10px;font-weight:600;cursor:pointer;">Annuler</button>'
       + '</div>'
       + '</div>';
     document.body.appendChild(m);
@@ -15574,7 +15682,7 @@ function adminSearchByOrder() {
       + '</div>'
       + '<div style="display:flex;gap:10px;">'
       + '<button onclick="lcStopCamScan()" style="background:rgba(255,59,48,.15);border:1px solid rgba(255,59,48,.4);color:#ff3b30;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fermer</button>'
-      + '<button onclick="lcManualQrInput(''+orderId+'')" style="background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);color:var(--bl);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">⌨️ Saisir manuellement</button>'
+      + '<button onclick="lcManualQrInput(\'' + orderId + '\')" style="background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);color:var(--bl);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">⌨️ Saisir manuellement</button>'
       + '</div>'
       + '<div id="lc-cam-status" style="font-size:12px;color:var(--mt2);"></div>';
     document.body.appendChild(m);
@@ -15663,15 +15771,15 @@ function adminSearchByOrder() {
     m.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;';
     m.innerHTML = '<img src="'+order.delivery_photo_url+'" style="max-width:95vw;max-height:80vh;border-radius:12px;object-fit:contain;">'
       + '<div style="display:flex;gap:10px;">'
-      + '<button onclick="lcShareDeliveryPhoto(''+orderId+'')" style="background:var(--or);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;">📤 Partager</button>'
-      + '<button onclick="this.closest('div[style]').remove()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;">✕ Fermer</button>'
+      + '<button onclick="lcShareDeliveryPhoto(\'' + orderId + '\')" style="background:var(--or);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;">📤 Partager</button>'
+      + '<button onclick="this.closest(\'div[style]\').remove()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;">✕ Fermer</button>'
       + '</div>';
     m.onclick = function(e){ if (e.target === m) m.remove(); };
     document.body.appendChild(m);
   };
   window.lcShareDeliveryPhoto = function(orderId) {
     var order = escrowOrders.find(function(o){ return o.id === orderId; });
-    if (!order || !order.delivery_photo_url) { showNotif('📸','Aucune photo','Prenez d'abord une photo de livraison.'); return; }
+    if (!order || !order.delivery_photo_url) { showNotif('📸','Aucune photo','Prenez d\'abord une photo de livraison.'); return; }
     lcShareDeliveryPhotoData(orderId, order.delivery_photo_url);
   };
   window.lcShareDeliveryPhotoData = function(orderId, dataUrl) {
@@ -15682,8 +15790,7 @@ function adminSearchByOrder() {
         var file = new File([blob], 'livraison-'+orderId+'.jpg', { type: 'image/jpeg' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           navigator.share({ files: [file], title: 'Photo livraison', text: text }).catch(function(){
-            navigator.share({ text: text + '
-(Photo enregistrée localement)' }).catch(function(){});
+            navigator.share({ text: text + '\n(Photo enregistrée localement)' }).catch(function(){});
           });
         } else {
           navigator.share({ text: text }).catch(function(){});
