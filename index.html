@@ -32,8 +32,10 @@
 <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(), geolocation=(self)">
 <title>LogiConnect — Plateforme Logistique Mondiale</title>
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/logiconnect-icon-192.png">
-<link rel="apple-touch-icon" href="./icons/logiconnect-icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&amp;family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <!-- Scripts CDN — versions épinglées pour sécurité -->
@@ -927,7 +929,8 @@ body.lc-home-active #nav-dashboard-btn{display:none!important;}
 @media(max-width:400px){.ai-panel{width:300px;}}
 
 /* NOTIFICATIONS */
-.notif-container{position:fixed;top:146px;right:20px;z-index:900;display:flex;flex-direction:column;gap:10px;}
+.notif-container{position:fixed;top:146px;right:20px;z-index:900;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.notif-container .notif{pointer-events:auto;}
 .notif{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;
   display:flex;align-items:flex-start;gap:10px;max-width:320px;
   animation:slideIn .3s ease;box-shadow:var(--shadow);}
@@ -3060,8 +3063,8 @@ goPage = function goPage(name, btn) {
     Logi<b>Connect</b>
   </div>
   <div class="nav-center" id="nav-links">
-    <button class="nl on" onclick="goPage('home',this)" data-manus_clickable="true" data-manus_click_id="2">Accueil</button>
-    <button class="nl" onclick="goPage('search',this)" data-manus_clickable="true" data-manus_click_id="3">🔍 Rechercher</button>
+    <button class="nl" onclick="goPage('home',this)" data-manus_clickable="true" data-manus_click_id="2">Accueil</button>
+    <button class="nl on" onclick="goPage('search',this)" data-manus_clickable="true" data-manus_click_id="3">🔍 Rechercher</button>
     <button class="nl" id="nav-inscription-btn" onclick="goPage('inscription',this)" data-manus_clickable="true" data-manus_click_id="4">S'inscrire</button>
     <button class="nl" id="nav-dashboard-btn" onclick="goPage('dashboard',this)" style="display:none;">📊 Mon espace</button>
     <button class="nl" onclick="goPage('tarifs',this)" data-manus_clickable="true" data-manus_click_id="5">Tarifs</button>
@@ -3111,7 +3114,7 @@ goPage = function goPage(name, btn) {
 </div>
 
 <!-- â•â•â•═ PAGE ACCUEIL â•â•â•═ -->
-<div id="page-home" class="page on">
+<div id="page-home" class="page">
   <div class="hero">
     <div class="hero-bg"></div>
     <div class="hero-grid"></div>
@@ -3332,7 +3335,7 @@ goPage = function goPage(name, btn) {
     <div class="container">
       <div class="footer-grid">
         <div class="f-brand"><span class="logo">🌍 Logi<b>Connect</b></span><p>La plateforme qui connecte clients, transporteurs et espaces de stockage dans le monde entier.</p></div>
-        <div class="f-col"><h4>Plateforme</h4><a onclick="goPage('search')" data-manus_clickable="true" data-manus_click_id="16">Rechercher</a><a onclick="goPage('inscription')" data-manus_clickable="true" data-manus_click_id="17">S'inscrire</a><a onclick="goPage('tarifs')" data-manus_clickable="true" data-manus_click_id="18">Tarifs</a></div>
+        <div class="f-col"><h4>Plateforme</h4><a onclick="goPage('search')" data-manus_clickable="true" data-manus_click_id="16">Rechercher</a><a onclick="goPage('inscription')" data-manus_clickable="true" data-manus_click_id="17">S'inscrire</a><a onclick="goPage('tarifs')" data-manus_clickable="true" data-manus_click_id="18">Tarifs</a><a onclick="window.lcInstallApp && window.lcInstallApp()" id="lc-footer-install-link">📲 Installer l'application</a></div>
         <div class="f-col"><h4>Services</h4><a onclick="goPage('inscription')" data-manus_clickable="true" data-manus_click_id="19">Transporteurs</a><a onclick="goPage('inscription')" data-manus_clickable="true" data-manus_click_id="20">Stockage</a><a onclick="goPage('inscription')" data-manus_clickable="true" data-manus_click_id="21">Clients</a></div>
         <div class="f-col"><h4>Légal</h4><a onclick="goPage('cgu')" data-manus_clickable="true" data-manus_click_id="22">CGU</a><a onclick="goPage('cgu')" data-manus_clickable="true" data-manus_click_id="23">Confidentialité</a><a class="dyn-site-email-link" data-manus_clickable="true" data-manus_click_id="24">contactlogiconnectapp@gmail.com</a><a class="dyn-site-whatsapp-link" target="_blank">WhatsApp</a><a class="dyn-site-tel-link">Tél : <span class="dyn-site-tel">+212600000000</span></a></div>
         <div class="f-col"><h4>Ambassadeurs</h4><a onclick="goPage('ambassadeur')" data-manus_clickable="true" data-manus_click_id="25">Rejoindre</a><a onclick="goPage('amb-dashboard')" data-manus_clickable="true" data-manus_click_id="26">Mon espace</a><a class="dyn-site-email-link" data-manus_clickable="true" data-manus_click_id="27">contactlogiconnectapp@gmail.com</a></div>
@@ -3710,7 +3713,7 @@ goPage = function goPage(name, btn) {
 </div>
 
 <!-- â•â•â•═ PAGE SEARCH â•â•â•═ -->
-<div id="page-search" class="page">
+<div id="page-search" class="page on">
 
 <!-- ═══════ STYLES ONBOARDING VISUEL ═══════ -->
 <style>
@@ -3762,8 +3765,7 @@ goPage = function goPage(name, btn) {
   display:inline-flex;align-items:center;gap:6px;margin:10px auto 0;padding:8px 16px;
   background:rgba(255,255,255,.05);border:1px solid var(--bd2,rgba(255,255,255,.12));
   border-radius:999px;color:var(--mt2,#999);font-size:12px;font-weight:600;cursor:pointer;
-  opacity:0;animation:lc-ob-skip-fadein .5s ease forwards;animation-delay:3s;
-  pointer-events:none;transition:background .2s,color .2s;
+  opacity:1;pointer-events:auto;transition:background .2s,color .2s;
 }
 .lc-ob-skip-btn.lc-ob-skip-active{pointer-events:auto;}
 .lc-ob-skip-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
@@ -3821,7 +3823,7 @@ goPage = function goPage(name, btn) {
     <div class="lc-map-loading" id="lc-map-loading">Chargement de la carte...</div>
 
     <!-- ═══════ PANNEAU FILTRE FLOTTANT CARTE ═══════ -->
-    <div id="lc-map-filter-panel">
+    <div id="lc-map-filter-panel" class="collapsed">
       <div id="lc-map-filter-header" onclick="lcMapFilterToggleCollapse()">
         <div id="lc-map-filter-header-title">
           🔍 Filtres
@@ -5689,44 +5691,17 @@ function lcCommunicationHtml(order, cur, compact) {
 }
 function lcLitigeBoxHtml(order, role) {
   if (!order || order.statut !== 'litige') return '';
-  var safe = lcSafeDomId(order.id);
   var esc = lcEscOrderId(order.id);
-  var label = role === 'client' ? 'client' : 'prestataire';
+  var caseRef = order.litige_id ? ' — Dossier <b style="color:#fff;">' + sanitizeInput(order.litige_id) + '</b>' : '';
   return '<div style="background:rgba(255,59,48,.07);border:1px solid rgba(255,59,48,.25);border-radius:10px;padding:12px;margin-top:10px;">'
-    + '<div style="font-size:11px;color:var(--rd);font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Renseignements litige - ' + label + '</div>'
-    + '<div style="font-size:12px;color:var(--mt2);line-height:1.5;margin-bottom:8px;">Expliquez votre reponse. Elle sera visible uniquement par l admin dans le dossier du litige.</div>'
-    + '<textarea id="litige-reponse-' + label + '-' + safe + '" maxlength="300" placeholder="Votre reponse au litige..." style="width:100%;min-height:72px;background:var(--dk);border:1px solid rgba(255,59,48,.28);border-radius:9px;padding:10px;color:#fff;font-size:12px;outline:none;resize:vertical;"></textarea>'
-    + '<button onclick="lcAddLitigeResponse(\'' + esc + '\',\'' + label + '\')" style="margin-top:8px;background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.35);color:var(--rd);padding:9px 12px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">Envoyer renseignement</button>'
+    + '<div style="font-size:11px;color:var(--rd);font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Litige en cours' + caseRef + '</div>'
+    + '<div style="font-size:12px;color:var(--mt2);line-height:1.5;margin-bottom:10px;">Toutes les preuves et echanges se font dans le dossier litige dedie. Escrow gele jusqu a decision admin.</div>'
+    + '<button onclick="lcOpenLitige(\'' + esc + '\')" style="background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.35);color:var(--rd);padding:9px 12px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">Ouvrir le dossier litige</button>'
     + '</div>';
 }
-function lcAddLitigeResponse(orderId, role) {
-  var order = (escrowOrders || []).find(function(o){ return o.id === orderId; });
-  if (!order) return;
-  var safe = lcSafeDomId(orderId);
-  var label = role === 'client' ? 'client' : 'prestataire';
-  var el = document.getElementById('litige-reponse-' + label + '-' + safe);
-  var text = lcLimitDescription(el ? el.value : '');
-  if (!text) { showNotif('Info', 'Reponse requise', 'Veuillez ecrire un renseignement pour le litige.'); return; }
-  lcAddOrderCommunication(order, label, 'reponse_litige', text, null, order.devise_locale || order.currency);
-  saveOrders();
-  showNotif('OK', 'Renseignement envoye', 'La reponse est visible cote admin.');
-  renderDashboard();
-  if (window._adminNav) window._adminNav('commandes');
-}
-function adminCloseLitige(orderId) {
-  var order = (escrowOrders || []).find(function(o){ return o.id === orderId; });
-  if (!order) return;
-  if (!confirm('Cloturer le litige de la commande ' + orderId + ' ?')) return;
-  order.litige_cloture = true;
-  order.litige_statut = 'cloture';
-  order.date_cloture_litige = new Date().toISOString();
-  if (order.statut === 'litige') order.statut = 'confirme_client';
-  lcAddOrderCommunication(order, 'admin', 'litige_cloture', 'Litige cloture par admin. La commande peut reprendre son processus.', null, order.devise_locale || order.currency);
-  saveOrders();
-  renderDashboard();
-  if (window._adminNav) window._adminNav('commandes');
-  showNotif('OK', 'Litige cloture', 'La commande est remise en validation comptabilite.');
-}
+// NOTE: la cloture d un litige se fait desormais exclusivement via le dossier structure
+// (lcResolveLitige), qui impose une decision financiere claire (client / prestataire / 50-50)
+// au lieu d une cloture aveugle sans repartition des fonds.
 function adminOrderContextHtml(order, cur) {
   order = order || {};
   var client = lcUserByEmail(order.client_email) || {};
@@ -5741,7 +5716,7 @@ function adminOrderContextHtml(order, cur) {
     ? '<div style="background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.45);border-radius:10px;padding:10px 12px;margin-bottom:10px;color:var(--rd);font-size:12px;font-weight:900;">ALERTE ADMIN : litige ouvert sur cette annonce. Consultez les reponses client/prestataire avant cloture.</div>'
     : '';
   var closeLitigeBtn = order.statut === 'litige'
-    ? '<button onclick="adminCloseLitige(\'' + safeId + '\')" style="margin-left:8px;background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.35);color:var(--rd);padding:7px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">Cloturer litige</button>'
+    ? '<button onclick="lcOpenLitige(\'' + safeId + '\')" style="margin-left:8px;background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.35);color:var(--rd);padding:7px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">📂 Voir le dossier litige' + (order.litige_id ? ' (' + sanitizeInput(order.litige_id) + ')' : '') + '</button>'
     : '';
   return '<div style="background:rgba(0,153,255,.04);border:1px solid rgba(0,153,255,.14);border-radius:10px;padding:10px 12px;margin-bottom:10px;">'
     + litigeAlert
@@ -5823,16 +5798,42 @@ function lcServiceToken() { if (window.crypto && crypto.randomUUID) return crypt
 function lcQrPayload(order) { return 'LOGICONNECT|' + order.id + '|' + (order.service_token || ''); }
 function lcQrUrl(order, size) { var s = size || 180; return 'https://api.qrserver.com/v1/create-qr-code/?size=' + s + 'x' + s + '&data=' + encodeURIComponent(lcQrPayload(order)); }
 function lcQrShareText(order) { return 'LogiConnect - QR confirmation prestation\nCommande: ' + order.id + '\nCode: ' + (order.service_token || '') + '\nLien QR: ' + lcQrUrl(order, 320); }
-function lcAdminPaymentApproved(order) { return !!(order && order.statut === 'paye_en_attente_service' && order.paiement_admin_confirme === true && order.ordre_execution_envoye === true); }
+function lcAdminPaymentApproved(order) { return !!(order && order.paiement_admin_confirme === true && order.ordre_execution_envoye === true); }
 function lcCanClientSeeQr(order) { return lcAdminPaymentApproved(order); }
 function lcCopyServiceQr(orderId) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order) return; if(!lcCanClientSeeQr(order)){ showNotif('🔒','QR bloqué','Le QR sera disponible après confirmation admin du paiement reçu.'); return; } try { navigator.clipboard.writeText(lcQrShareText(order)); showNotif('Copié','Code QR copié','Le code/lien QR est prêt à envoyer.'); } catch(e) { prompt('Code/lien QR à copier :', lcQrShareText(order)); } }
+// ✅ Envoi du QR en tant qu'IMAGE réelle (pas juste un lien) au prestataire/stockeur via le partage natif du téléphone
+async function lcShareQrAsImage(orderId) {
+  var order = escrowOrders.find(function(o){ return o.id === orderId; });
+  if (!order) return;
+  if (!lcCanClientSeeQr(order)) { showNotif('🔒','QR bloqué','Le QR sera disponible après confirmation admin du paiement reçu.'); return; }
+  var imgUrl = lcQrUrl(order, 480);
+  try {
+    var resp = await fetch(imgUrl);
+    var blob = await resp.blob();
+    var file = new File([blob], 'qr-logiconnect-' + order.id + '.png', { type: blob.type || 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'QR confirmation prestation',
+        text: 'LogiConnect — Commande ' + order.id + ' — Code: ' + (order.service_token || '')
+      });
+      return;
+    }
+    throw new Error('partage de fichier non supporté');
+  } catch (e) {
+    // Repli : ouvrir l'image dans un nouvel onglet pour que l'utilisateur l'enregistre/partage manuellement
+    window.open(imgUrl, '_blank');
+    showNotif('📷', 'Image QR ouverte', 'Enregistrez ou partagez cette image avec le prestataire/stockeur (appui long sur l\'image).');
+  }
+}
 function lcWhatsappServiceQr(orderId) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order) return; if(!lcCanClientSeeQr(order)){ showNotif('🔒','QR bloqué','Le QR sera disponible après confirmation admin du paiement reçu.'); return; } window.open('https://wa.me/?text=' + encodeURIComponent(lcQrShareText(order)), '_blank'); }
+function lcEmailServiceQr(orderId) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order) return; if(!lcCanClientSeeQr(order)){ showNotif('🔒','QR bloqué','Le QR sera disponible après confirmation admin du paiement reçu.'); return; } window.open('mailto:?subject='+encodeURIComponent('LogiConnect — Code QR confirmation prestation — Commande '+order.id)+'&body='+encodeURIComponent(lcQrShareText(order)),'_blank'); }
 function openLargeServiceQr(orderId) {
   var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order) return;
   if(!lcCanClientSeeQr(order)){ showNotif('🔒','QR bloqué','Le QR sera disponible après confirmation admin du paiement reçu.'); return; }
   var old=document.getElementById('qr-large-modal'); if(old) old.remove();
   var m=document.createElement('div'); m.id='qr-large-modal'; m.className='modal open'; m.style.zIndex='1500';
-  m.innerHTML='<div class="mbox" style="max-width:430px;text-align:center;"><button class="mclose" onclick="document.getElementById(\'qr-large-modal\').remove()">✕</button><div style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;">QR confirmation prestation</div><div style="font-size:12px;color:var(--mt2);margin-bottom:14px;">Commande '+order.id+'</div><img src="'+lcQrUrl(order, 320)+'" alt="QR confirmation" style="width:280px;height:280px;max-width:100%;background:#fff;border-radius:14px;padding:10px;margin:0 auto 14px;"><div style="font-size:11px;color:var(--mt2);margin-bottom:6px;">Code enregistré sur la commande</div><div style="font-size:12px;color:#fff;font-family:monospace;word-break:break-all;background:var(--c2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:14px;">'+order.service_token+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="lcCopyServiceQr(\''+order.id+'\')" style="flex:1;background:var(--c3);border:1px solid var(--bd2);color:#fff;padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">Copier code/lien</button><button onclick="lcWhatsappServiceQr(\''+order.id+'\')" style="flex:1;background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">WhatsApp</button></div></div>';
+  m.innerHTML='<div class="mbox" style="max-width:430px;text-align:center;"><button class="mclose" onclick="document.getElementById(\'qr-large-modal\').remove()">✕</button><div style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;">QR confirmation prestation</div><div style="font-size:12px;color:var(--mt2);margin-bottom:14px;">Commande '+order.id+'</div><img src="'+lcQrUrl(order, 320)+'" alt="QR confirmation" style="width:280px;height:280px;max-width:100%;background:#fff;border-radius:14px;padding:10px;margin:0 auto 14px;"><div style="font-size:11px;color:var(--mt2);margin-bottom:6px;">Code enregistré sur la commande</div><div style="font-size:12px;color:#fff;font-family:monospace;word-break:break-all;background:var(--c2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:14px;">'+order.service_token+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="lcCopyServiceQr(\''+order.id+'\')" style="flex:1;background:var(--c3);border:1px solid var(--bd2);color:#fff;padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">📋 Copier</button><button onclick="lcWhatsappServiceQr(\''+order.id+'\')" style="flex:1;background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">💬 WhatsApp</button><button onclick="lcShareQrAsImage(\''+order.id+'\')" style="flex:1;background:rgba(255,77,0,.1);border:1px solid rgba(255,77,0,.3);color:var(--or);padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">📷 Image</button><button onclick="lcEmailServiceQr(\''+order.id+'\')" style="flex:1;background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);color:var(--bl);padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">📧 Email</button></div></div>';
   document.body.appendChild(m); m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
 }
 function lcQrClientHtml(order) {
@@ -5840,7 +5841,7 @@ function lcQrClientHtml(order) {
   if (order.statut === 'paiement_a_valider_admin' || (order.statut === 'paye_en_attente_service' && !lcCanClientSeeQr(order))) {
     return '<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.25);border-radius:10px;padding:12px;margin-top:10px;display:flex;gap:10px;align-items:flex-start;"><span style="font-size:18px;flex-shrink:0;">🔒</span><div style="font-size:12px;color:var(--yw);line-height:1.5;"><b>QR non disponible pour le moment.</b><br>Il sera affiché uniquement après confirmation admin de la réception du paiement sur le compte LogiConnect. À ce moment, l\'ordre d\'exécution sera envoyé au transporteur/stockeur.</div></div>';
   }
-  if (order.statut !== 'paye_en_attente_service' || !lcCanClientSeeQr(order)) return '';
+  if (!lcCanClientSeeQr(order)) return '';
   order.service_qr_link = lcQrUrl(order, 320);
   var photoHtml = order.delivery_photo_url
     ? '<div style="margin-top:8px;"><div style="font-size:10px;color:var(--gr);font-weight:700;margin-bottom:4px;">📸 PHOTO LIVRAISON</div><img src="'+order.delivery_photo_url+'" style="width:80px;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="lcViewDeliveryPhoto(\''+order.id+'\')"><button onclick="lcShareDeliveryPhoto(\''+order.id+'\')" style="display:block;margin-top:4px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">📤 Partager photo</button></div>'
@@ -5855,7 +5856,9 @@ function lcQrClientHtml(order) {
     + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
     + '<button onclick="openLargeServiceQr(\''+order.id+'\')" style="background:var(--or);color:#fff;border:none;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;">Agrandir QR</button>'
     + '<button onclick="lcCopyServiceQr(\''+order.id+'\')" style="background:var(--c3);border:1px solid var(--bd2);color:#fff;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">Copier</button>'
-    + '<button onclick="lcWhatsappServiceQr(\''+order.id+'\')" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">WhatsApp</button>'
+    + '<button onclick="lcWhatsappServiceQr(\''+order.id+'\')" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">💬 WhatsApp</button>'
+    + '<button onclick="lcShareQrAsImage(\''+order.id+'\')" style="background:rgba(255,77,0,.1);border:1px solid rgba(255,77,0,.3);color:var(--or);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📷 Envoyer image</button>'
+    + '<button onclick="lcEmailServiceQr(\''+order.id+'\')" style="background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);color:var(--bl);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📧 Email</button>'
     + '<button onclick="lcScanDeliveryQrCamera(\''+order.id+'\')" style="background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);color:var(--bl);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📷 Scanner QR livraison</button>'
     + '<button onclick="lcTakeDeliveryPhoto(\''+order.id+'\')" style="background:rgba(255,179,0,.1);border:1px solid rgba(255,179,0,.3);color:var(--yw);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📸 Photo livraison</button>'
     + '</div>'
@@ -5991,6 +5994,44 @@ async function adminRelancerPaiement(orderId) {
   try { addActivityLog('relance_paiement', 'Relance paiement envoyée au client pour la commande ' + order.id); } catch(e) {}
 
   showNotif('Relance envoyée', 'Client notifié', 'Le client a été notifié pour finaliser le paiement de la commande ' + order.id + '.');
+  if (typeof renderDashboard === 'function') renderDashboard();
+}
+
+// ✅ Admin : relancer le client pour qu'il confirme la réception/livraison, avec avertissement
+// de 15 jours. Ceci N'AUTOMATISE PAS la libération des fonds — l'admin garde la main et libère
+// manuellement via le bouton existant. Seul un rappel + un compteur de relance sont ajoutés.
+async function adminRelancerConfirmationLivraison(orderId) {
+  var order = escrowOrders.find(function(o){ return o.id === orderId; });
+  if (!order) return;
+  if (!['paye_en_attente_service','attente_comptabilite'].includes(order.statut)) {
+    showNotif('⚠️', 'Action impossible', 'Cette relance ne s\'applique qu\'aux commandes en attente de confirmation de livraison par le client.');
+    return;
+  }
+  if (!confirm('Relancer le client ' + (order.client_email || '') + ' pour confirmer la réception/livraison de la commande ' + orderId + ' ?')) return;
+
+  var msg = 'Merci de confirmer la bonne réception/livraison de votre commande ' + order.id + ' sur LogiConnect '
+    + '(en montrant votre code QR au prestataire, ou en cliquant sur "Confirmer la réception"). '
+    + 'Sans confirmation de votre part, ni arguments transmis, ni ouverture d\'un litige dans un délai de 15 jours '
+    + 'à compter de ce message, le virement sera exécuté au prestataire/stockeur.';
+
+  order.relance_confirmation_livraison_at = new Date().toISOString();
+  order.relance_confirmation_livraison_count = (order.relance_confirmation_livraison_count || 0) + 1;
+  order.relance_confirmation_livraison_deadline = new Date(Date.now() + 15*24*60*60*1000).toISOString();
+  try { lcAddOrderCommunication(order, 'admin', 'relance_confirmation_livraison', msg, order.montant, order.devise_locale || order.currency); } catch(e) {}
+  try { saveOrders(); } catch(e) {}
+
+  try {
+    await sendEmail('template_payment', {
+      to_email: order.client_email || '',
+      order_id: order.id,
+      service: order.service || '',
+      message: msg
+    });
+  } catch(e) { console.warn('Email relance confirmation livraison:', e); }
+
+  try { addActivityLog('relance_confirmation_livraison', 'Relance confirmation livraison envoyée au client pour la commande ' + order.id + ' (échéance 15 jours).'); } catch(e) {}
+
+  showNotif('📨', 'Relance envoyée', 'Le client a été notifié — délai de 15 jours communiqué avant exécution du virement au prestataire.');
   if (typeof renderDashboard === 'function') renderDashboard();
 }
 
@@ -7433,20 +7474,8 @@ function adminReleaseFunds(orderId) {
   setTimeout(() => generateFondsLiberesPDF(order), 500);
 }
 
-function disputeOrder(orderId) {
-  const order = escrowOrders.find(o => o.id === orderId);
-  if (!order) return;
-  const role = currentUser && currentUser.type === 'client' ? 'client' : (currentUser && ['transporteur','stockage','ambassadeur'].includes(currentUser.type) ? 'prestataire' : 'admin');
-  if (order.statut !== 'litige') {
-    order.motif_litige = order.motif_litige || 'Litige ouvert - renseignements attendus du client et du prestataire.';
-    order.date_litige = new Date().toISOString();
-    lcAddOrderCommunication(order, role, 'litige_ouvert', order.motif_litige, null, order.devise_locale || order.currency);
-  }
-  order.statut = 'litige';
-  saveOrders();
-  renderDashboard();
-  showNotif('⚠️', 'Litige ouvert', 'Notre équipe intervient sous 24h.');
-}
+// NOTE: disputeOrder() est définie plus bas (voir lcOpenLitige) pour rediriger vers
+// le système de litige structuré (dossier LIT-xxx, preuves, messagerie, décision admin).
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•═
 // PDF — ÉTAT DES FONDS LIBÉRÉS (comptabilité)
@@ -8122,10 +8151,11 @@ function renderUserDash() {
   currentUser = u;
   const typeLabel = {client:'👤 Client',transporteur:'🚚 Transporteur',stockage:'🏭 Propriétaire de stockage',ambassadeur:'🎓 Ambassadeur'}[u.type]||u.type;
   const initiale = (u.prenom||u.email||'U')[0].toUpperCase();
-  const myOrders = escrowOrders.filter(o => o.client_email === u.email);
+  const uEmailLowerDash = String(u.email||'').toLowerCase();
+  const myOrders = escrowOrders.filter(o => String(o.client_email||'').toLowerCase() === uEmailLowerDash);
   const userCurrency = lcCurrencyForCountry(u.pays);
   const providerOrdersForUser = escrowOrders.filter(function(o) {
-    return o.prestataire_email === u.email || o.prestataire_user_id === u.email || o.prestataire_contact_email === u.email;
+    return String(o.prestataire_email||'').toLowerCase() === uEmailLowerDash || String(o.prestataire_user_id||'').toLowerCase() === uEmailLowerDash || String(o.prestataire_contact_email||'').toLowerCase() === uEmailLowerDash;
   });
   const providerPaidStatuses = ['paye_en_attente_service','attente_comptabilite','confirme_client','termine'];
   const providerNetRevenue = providerOrdersForUser
@@ -8389,9 +8419,9 @@ function renderUserDash() {
         return;
       }
 
-      // Charger toutes les offres de cet utilisateur
-      const allOps = loadOperators();
-      const mesOffres = allOps.filter(op => op.userId === u.email);
+      // Charger toutes les offres de cet utilisateur (y compris celles en pause / Stop vente)
+      const allOps = loadOperatorsForOwner(u.email);
+      const mesOffres = allOps;
       const isAmbassadeur = u.type === 'ambassadeur';
       const isTransporteur = u.type === 'transporteur';
       const defaultOfferKind = (isTransporteur || isAmbassadeur) ? 'tr' : 'st';
@@ -8417,20 +8447,23 @@ function renderUserDash() {
         </div>` :
         mesOffres.map(op => {
           const photoUrl = getListingPhoto(op);
+          const isPaused = op.en_pause === true;
           return `
-          <div style="background:var(--c1);border:1px solid var(--bd);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--bd2)'" onmouseout="this.style.borderColor='var(--bd)'">
+          <div style="background:var(--c1);border:1px solid ${isPaused?'rgba(255,179,0,.35)':'var(--bd)'};border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color .2s;opacity:${isPaused?'.82':'1'};" onmouseover="this.style.borderColor='var(--bd2)'" onmouseout="this.style.borderColor='${isPaused?'rgba(255,179,0,.35)':'var(--bd)'}'">
             <div style="height:140px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--c2),var(--c3));">
               <img src="${photoUrl}" alt="${op.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;opacity:.85;transition:opacity .3s;" onerror="this.style.display='none'">
               <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.5));"></div>
               <span style="position:absolute;top:10px;left:10px;background:${op.type==='tr'?'rgba(0,230,118,.9)':'rgba(0,153,255,.9)'};color:${op.type==='tr'?'#000':'#fff'};font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;">
                 ${op.type==='tr'?'🚚 Transport':'🏭 Stockage'}
               </span>
+              ${isPaused ? `<span style="position:absolute;top:10px;right:10px;background:rgba(255,179,0,.95);color:#000;font-size:10px;font-weight:800;padding:3px 10px;border-radius:6px;">⏸️ Vente suspendue</span>` : ''}
               <div style="position:absolute;bottom:10px;left:14px;right:14px;">
                 <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);">${op.name}</div>
                 <div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;">📍 ${op.loc}</div>
               </div>
             </div>
             <div style="padding:14px 18px;">
+              ${isPaused ? `<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:var(--yw);">⏸️ Cette offre est masquée de la recherche — vos clients ne peuvent pas la réserver tant qu'elle est en pause.</div>` : ''}
               <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
                 <div style="flex:1;">
                   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${(op.chips||[]).map(c=>`<span style="background:var(--c3);border:1px solid var(--bd2);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--mt3);">${c}</span>`).join('')}</div>
@@ -8442,8 +8475,9 @@ function renderUserDash() {
                   <div style="font-size:10px;color:var(--mt);margin-top:2px;">/ ${op.unit}</div>
                 </div>
               </div>
-              <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);">
-                <button onclick="editOffreForm('${op.id}')" style="flex:1;background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.2);color:var(--bl);padding:8px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">✏️ï¸ Modifier</button>
+              <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);flex-wrap:wrap;">
+                <button onclick="toggleOffrePause('${op.id}')" style="flex:1;min-width:140px;background:${isPaused?'rgba(0,230,118,.1)':'rgba(255,179,0,.1)'};border:1px solid ${isPaused?'rgba(0,230,118,.3)':'rgba(255,179,0,.3)'};color:${isPaused?'var(--gr)':'var(--yw)'};padding:8px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">${isPaused?'▶️ Réactiver la vente':'⏸️ Stop vente (occupé)'}</button>
+                <button onclick="editOffreForm('${op.id}')" style="flex:1;min-width:100px;background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.2);color:var(--bl);padding:8px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">✏️ï¸ Modifier</button>
                 <button onclick="supprimerOffre('${op.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🗑️</button>
               </div>
             </div>
@@ -8464,14 +8498,14 @@ function renderUserDash() {
           const myPending = loadPendingAnnonces().filter(a => a.userId === u.email || a.email === u.email);
           if (!myPending.length) return '';
           return `<div style="background:rgba(255,179,0,.06);border:1px solid rgba(255,179,0,.3);border-radius:14px;padding:16px;margin-bottom:20px;">
-            <div style="font-size:13px;font-weight:700;color:var(--yw);margin-bottom:12px;">⏳ En attente de validation (${myPending.length})</div>
+            <div style="font-size:13px;font-weight:700;color:var(--yw);margin-bottom:12px;">⏳ En attente de validation admin (${myPending.length})</div>
             ${myPending.map(a => `<div style="display:flex;align-items:center;gap:12px;background:var(--dk);border:1px solid var(--bd2);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
               <span style="font-size:20px;">${a.ic}</span>
               <div style="flex:1;min-width:0;">
                 <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.name}</div>
                 <div style="font-size:11px;color:var(--mt2);">📍 ${a.loc} &nbsp;·&nbsp; <span style="color:var(--or);">${lcMoney(a.price, lcCurrencyForListing(a))}/${a.unit}</span></div>
               </div>
-              <span style="background:rgba(255,179,0,.15);color:var(--yw);font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap;">⏳ En attente</span>
+              <span style="background:rgba(255,179,0,.15);color:var(--yw);font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap;">⏳ En attente admin</span>
             </div>`).join('')}
           </div>`;
         })()}
@@ -9039,10 +9073,11 @@ function renderUserDash() {
         return;
       }
       const allOps = loadOperators();
-      const mesIds = allOps.filter(op => op.userId === u.email || op.email === u.email).map(op => op.id);
-      const mesNoms = allOps.filter(op => op.userId === u.email || op.email === u.email).map(op => op.name);
+      const uEmailLower = String(u.email || '').toLowerCase();
+      const mesIds = allOps.filter(op => String(op.userId||'').toLowerCase() === uEmailLower || String(op.email||'').toLowerCase() === uEmailLower).map(op => op.id);
+      const mesNoms = allOps.filter(op => String(op.userId||'').toLowerCase() === uEmailLower || String(op.email||'').toLowerCase() === uEmailLower).map(op => op.name);
       const demandesRecues = escrowOrders.filter(o =>
-        o.prestataire_email === u.email ||
+        String(o.prestataire_email||'').toLowerCase() === uEmailLower ||
         mesIds.includes(o.prestataire_listing_id) ||
         mesNoms.some(n => o.service === n)
       );
@@ -9290,10 +9325,11 @@ function renderUserDash() {
   if (u.type !== 'client') {
     setTimeout(function() {
       var allOps = loadOperators();
-      var mesIds = allOps.filter(function(op){return op.userId===u.email||op.email===u.email;}).map(function(op){return op.id;});
-      var mesNoms = allOps.filter(function(op){return op.userId===u.email||op.email===u.email;}).map(function(op){return op.name;});
+      var uEmailLowerNav = String(u.email||'').toLowerCase();
+      var mesIds = allOps.filter(function(op){return String(op.userId||'').toLowerCase()===uEmailLowerNav||String(op.email||'').toLowerCase()===uEmailLowerNav;}).map(function(op){return op.id;});
+      var mesNoms = allOps.filter(function(op){return String(op.userId||'').toLowerCase()===uEmailLowerNav||String(op.email||'').toLowerCase()===uEmailLowerNav;}).map(function(op){return op.name;});
       var nb = escrowOrders.filter(function(o){
-        return o.statut==='en_attente_confirmation' && (o.prestataire_email===u.email || mesIds.includes(o.prestataire_listing_id) || mesNoms.some(function(n){return o.service===n;}));
+        return o.statut==='en_attente_confirmation' && (String(o.prestataire_email||'').toLowerCase()===uEmailLowerNav || mesIds.includes(o.prestataire_listing_id) || mesNoms.some(function(n){return o.service===n;}));
       }).length;
       var navEl = document.getElementById('nav-demandes');
       if (navEl && nb > 0) navEl.innerHTML = '📩 Demandes clients <span style="background:var(--or);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:4px;">'+nb+'</span>';
@@ -9345,6 +9381,53 @@ function lcIsPublishedOperator(op) {
   if (op.published === false || op.visible === false) return false;
   return (op.published === true && op.visible !== false) || st === 'publie' || st === 'publiee' || st === 'published';
 }
+
+// Renvoie TOUTES les annonces publiées d\'un prestataire, y compris celles mises en pause (Stop vente),
+// pour son propre tableau de bord "Mes offres". La recherche publique reste filtrée par lcIsPublishedOperator.
+function loadOperatorsForOwner(email) {
+  try {
+    lcNormalizeAnnonceQueuesOnce();
+    const saved = localStorage.getItem('lc_operators');
+    let ops = saved ? JSON.parse(saved) : [];
+    if (!Array.isArray(ops)) ops = [];
+    return ops.filter(function(op) {
+      if (!op) return false;
+      var st = String(op.statut || '').toLowerCase();
+      if (st === 'en_attente_validation' || st === 'rejete' || st === 'rejetee' || st === 'brouillon' || st === 'supprime') return false;
+      if (op.published === false && op.en_pause !== true) return false;
+      return op.userId === email || op.email === email;
+    }).map(function(op) {
+      try {
+        var cur = lcCurrencyForListing(op);
+        op.devise = cur;
+        op.currency = cur;
+      } catch(e) {}
+      return op;
+    });
+  } catch(e) { return []; }
+}
+
+// Active/coupe la vente d\'une offre sans la supprimer ni la repasser en validation admin.
+// Écrit directement dans lc_operators (et non via saveOperators, qui exclurait l\'annonce en pause).
+window.toggleOffrePause = function(opId) {
+  try {
+    const raw = localStorage.getItem('lc_operators');
+    let ops = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(ops)) ops = [];
+    const op = ops.find(function(o){ return o.id === opId; });
+    if (!op) return;
+    op.en_pause = !op.en_pause;
+    op.date_pause = op.en_pause ? new Date().toISOString() : null;
+    localStorage.setItem('lc_operators', JSON.stringify(ops));
+    if (typeof db !== 'undefined' && db) {
+      try { db.from('annonces').update({ en_pause: op.en_pause }).eq('id', opId); } catch(e) { console.warn('Supabase pause annonce:', e); }
+    }
+    operators = (ops || []).filter(lcIsPublishedOperator);
+    showNotif(op.en_pause ? '⏸️' : '▶️', op.en_pause ? 'Vente suspendue' : 'Vente réactivée', op.en_pause ? '"' + op.name + '" n\'apparaît plus dans la recherche tant que vous êtes occupé.' : '"' + op.name + '" est de nouveau visible dans la recherche.');
+    if (typeof window._userNav === 'function') window._userNav('services');
+    else if (typeof renderDashboard === 'function') renderDashboard();
+  } catch(e) { console.warn('toggleOffrePause:', e); }
+};
 
 function lcNormalizeAnnonceQueuesOnce() {
   if (window.__lcQueuesNormalized) return;
@@ -10319,14 +10402,15 @@ async function filterCards() {
     } else if (l.whatsapp || l.tel || l.email) {
       contactBtns.push(`<div style="flex:1;background:rgba(255,77,0,.05);border:1px solid rgba(255,77,0,.15);color:var(--mt2);padding:8px;border-radius:8px;font-size:11px;text-align:center;">🔒 Contacts visibles après paiement confirmé</div>`);
     }
+    const isPaused = l.en_pause === true;
     return `
-    <div class="card" onclick="expandCard(event, '${l.id}')">
+    <div class="card" onclick="expandCard(event, '${l.id}')" style="${isPaused?'opacity:.78;':''}">
       <div class="card-img">
         <img src="${photoUrl}" alt="${l.name}" loading="lazy" onerror="this.style.display='none'">
         <div class="card-img-overlay"></div>
         <span class="ctag ${l.type}">${l.type==='st'?'🏭 Stockage':'🚚 Transport'}</span>
         ${l.flag ? `<span class="card-flag" title="${l.country||l.loc}">${l.flag}</span>` : ''}
-        ${dateStr ? `<span style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;">📅 ${dateStr}</span>` : ''}
+        ${isPaused ? `<span style="position:absolute;top:8px;right:8px;background:rgba(255,179,0,.95);color:#000;font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;">⏸️ Stop Vente</span>` : (dateStr ? `<span style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;">📅 ${dateStr}</span>` : '')}
       </div>
       <div class="card-body">
         <div class="card-name">${l.name}</div>
@@ -10335,7 +10419,7 @@ async function filterCards() {
           <span style="color:var(--bd2);margin:0 3px;">•</span>
           <span>${l.country || (l.loc||'').split(',').slice(-1)[0]?.trim() || ''}</span>
         </div>
-        ${dateStr ? `<div style="font-size:10px;color:var(--mt);margin-top:3px;margin-bottom:2px;">📅 Mise en ligne : <b style="color:var(--mt3);">${dateStr}</b></div>` : ''}
+        ${isPaused ? `<div style="font-size:11px;color:var(--yw);margin-top:4px;margin-bottom:2px;font-weight:700;">⏸️ Prestataire actuellement occupé — indisponible temporairement</div>` : (dateStr ? `<div style="font-size:10px;color:var(--mt);margin-top:3px;margin-bottom:2px;">📅 Mise en ligne : <b style="color:var(--mt3);">${dateStr}</b></div>` : '')}
         <div class="card-chips">${(l.chips||[]).map(c=>`<span class="chip">${c}</span>`).join('')}</div>
         <div class="card-ft">
           <div class="card-price">${lcMoney(l.price, lcCurrencyForListing(l))} <small>/ ${l.unit}</small></div>
@@ -10344,7 +10428,9 @@ async function filterCards() {
         <!-- Contacts masqués dans la liste, agrandissement au clic -->
         <div id="card-contacts-${l.id}" style="display:none;margin-bottom:8px;">${contactBtns.length > 0 ? `<div style="display:flex;gap:6px;">${contactBtns.join('')}</div>` : ''}</div>
         <div style="display:flex;gap:8px;margin-top:4px;">
-          <button class="card-btn" style="flex:1;" onclick='event.stopPropagation();lcReserveSearchListing(${JSON.stringify(reserveKey)})'>🔒 Réserver via LogiConnect</button>
+          ${isPaused
+            ? `<button class="card-btn" style="flex:1;background:var(--c3);color:var(--mt2);cursor:not-allowed;" disabled onclick="event.stopPropagation();">⏸️ Indisponible (Stop Vente)</button>`
+            : `<button class="card-btn" style="flex:1;" onclick='event.stopPropagation();lcReserveSearchListing(${JSON.stringify(reserveKey)})'>🔒 Réserver via LogiConnect</button>`}
           <button onclick='event.stopPropagation();openOfferModalById(${JSON.stringify(String(l.id || ""))})' style="background:var(--c3);border:1px solid var(--bd2);color:var(--mt2);padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;transition:all .2s;flex-shrink:0;" onmouseover="this.style.color='#fff';this.style.borderColor='var(--or)'" onmouseout="this.style.color='var(--mt2)';this.style.borderColor='var(--bd2)'">⛶</button>
         </div>
       </div>
@@ -10582,7 +10668,7 @@ function lcEnsureSearchMap() {
     return false;
   }
   if (lcSearchMapState.map) return true;
-  lcSearchMapState.map = L.map('lc-search-map', { zoomControl: true, attributionControl: true }).setView([31.7917, -7.0926], 5);
+  lcSearchMapState.map = L.map('lc-search-map', { zoomControl: true, attributionControl: true }).setView([20, 10], 2);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 20,
     attribution: '&copy; OpenStreetMap &copy; CARTO'
@@ -10636,9 +10722,12 @@ async function lcRenderMapMarkers(list) {
     bounds.push([geo.lat, geo.lon]);
   }
   if (loading) loading.style.display = 'none';
-  if (bounds.length && !state.centeredOnce) {
-    try { state.map.fitBounds(bounds, { padding: [60, 60], maxZoom: 8 }); } catch(e) {}
+  if (!state.centeredOnce) {
+    // ✅ Premier affichage : on garde la vue globale (terre entière), pas de zoom auto sur les annonces.
     state.centeredOnce = true;
+  } else if (bounds.length) {
+    // ✅ Affichages suivants (après filtrage du client) : on zoome sur les résultats filtrés.
+    try { state.map.fitBounds(bounds, { padding: [60, 60], maxZoom: 8 }); } catch(e) {}
   }
   setTimeout(function(){ try { state.map.invalidateSize(); } catch(e) {} }, 80);
 }
@@ -10744,11 +10833,9 @@ function lcChooseSearchMode(mode) {
   lcSearchMapState.mode = mode === 'map' ? 'map' : 'list';
   localStorage.setItem('lc_search_view_mode', lcSearchMapState.mode);
   lcApplySearchView();
-  if (lcSearchMapState.mode === 'map' && !lcSearchMapState.centeredOnce && navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(pos) {
-      if (lcEnsureSearchMap()) lcSearchMapState.map.setView([pos.coords.latitude, pos.coords.longitude], 11);
-    }, function(){}, { enableHighAccuracy: false, timeout: 5000, maximumAge: 120000 });
-  }
+  // ✅ La carte affiche d'abord la vue globale (terre entière) — le centrage sur la position
+  // du client ne se fait plus automatiquement. Le client doit cliquer sur "📍 Me localiser"
+  // pour voir les offres autour de lui, ou utiliser les filtres pour affiner l'affichage.
 }
 
 function lcToggleSearchView() {
@@ -10938,10 +11025,24 @@ function lcObHide() {
   var overlay = document.getElementById('lc-onboard-overlay');
   if (overlay) overlay.classList.add('lc-ob-hidden');
 }
+// Filet de securite : la touche Echap ferme toujours l'onboarding immediatement,
+// meme avant la fin de l'animation d'apparition du bouton "Retour aux annonces".
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  var overlay = document.getElementById('lc-onboard-overlay');
+  if (overlay && !overlay.classList.contains('lc-ob-hidden')) lcObHide();
+});
 
 // ═══════════════════════════════════════════════════════════════
 
 function lcSearchPageEntered() {
+  var savedMode = 'choice';
+  try {
+    var storedMode = localStorage.getItem('lc_search_view_mode');
+    if (storedMode === 'map' || storedMode === 'list' || storedMode === 'choice') savedMode = storedMode;
+  } catch(e) {}
+  if (lcSearchMapState.mode !== savedMode) lcSearchMapState.mode = savedMode;
+  lcApplySearchView();
   // ✅ Réinitialiser les filtres si nécessaire
   var q = document.getElementById('lc-map-query');
   var t = document.getElementById('lc-map-type');
@@ -10950,9 +11051,14 @@ function lcSearchPageEntered() {
   if (q && oldQ && !q.value) q.value = oldQ.value || '';
   if (t && oldT && !t.value) t.value = oldT.value || '';
 
-  // ✅ LANCER L'ONBOARDING VISUEL GUIDÉ
   filterCards();
-  lcObShow();
+  // ✅ Onboarding visuel : une seule fois par session, et jamais pour un compte deja connecte
+  // (prestataire/admin), pour eviter qu il bloque les actions metier (valider une commande, etc.)
+  var onboardAlreadySeen = sessionStorage.getItem('lc_onboard_seen');
+  if (!onboardAlreadySeen && !currentUser) {
+    sessionStorage.setItem('lc_onboard_seen', '1');
+    lcObShow();
+  }
 }
 
 function lcSearchPageLeft() {
@@ -10984,6 +11090,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ne pas lancer si l'utilisateur a déjà navigué ou si l'onboarding a déjà été vu
     var alreadySeen = sessionStorage.getItem('lc_onboard_seen');
     if (alreadySeen) return;
+    // Ne pas lancer si un compte est deja connecte (prestataire/admin en train de travailler)
+    if (typeof currentUser !== 'undefined' && currentUser) { sessionStorage.setItem('lc_onboard_seen', '1'); return; }
     // Ne pas lancer si une autre page est active (dashboard, inscription, etc.)
     var activePage = document.querySelector('.page.on');
     var activePageId = activePage ? activePage.id : '';
@@ -11635,7 +11743,7 @@ function finalizeOrder(listing) {
     id: orderId,
     client_email: currentUser.email,
     client_nom: (currentUser.prenom||'') + ' ' + (currentUser.nom||''),
-    prestataire_email: listing.email || listing.userId || '',
+    prestataire_email: String(listing.email || listing.userId || '').toLowerCase(),
     prestataire_user_id: listing.userId || listing.email || '',
     prestataire_listing_id: listing.id || '',
     prestataire_contact: listing.tel || listing.whatsapp || '',
@@ -11904,7 +12012,7 @@ function renderAdminDash() {
             <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;">📣 Annonces sur la Plateforme</div>
             <button onclick="window._adminNav('annonces')" style="background:var(--or);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Gérer les annonces →</button>
           </div>
-          ${loadPendingAnnonces().length>0?`<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;padding:11px 16px;margin-bottom:14px;font-size:13px;color:var(--yw);display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window._adminNav('annonces')"><span style="font-size:18px;">🔔</span> <b>${loadPendingAnnonces().length} annonce${loadPendingAnnonces().length>1?'s':''}</b> en attente de validation — <b>Cliquez ici pour valider</b></div>`:''}
+          ${loadPendingAnnonces().length>0?`<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;padding:11px 16px;margin-bottom:14px;font-size:13px;color:var(--yw);display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window._adminNav('annonces')"><span style="font-size:18px;">🔔</span> <b>${loadPendingAnnonces().length} annonce${loadPendingAnnonces().length>1?'s':''}</b> en attente de validation admin — <b>Cliquez ici pour valider</b></div>`:''}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
             <div style="background:var(--c2);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
               <div style="font-size:24px;font-weight:900;color:var(--gr);font-family:'Syne',sans-serif;">${loadOperators().filter(o=>o.type==='tr').length}</div>
@@ -12030,10 +12138,12 @@ function renderAdminDash() {
             <span style="font-size:10px;padding:4px 8px;border-radius:6px;font-weight:700;background:${o.provider_qr_confirmed?'rgba(0,230,118,.12)':'rgba(255,59,48,.1)'};color:${o.provider_qr_confirmed?'var(--gr)':'var(--rd)'};border:1px solid ${o.provider_qr_confirmed?'rgba(0,230,118,.3)':'rgba(255,59,48,.25)'};">${o.provider_qr_confirmed?'✅':'⏳'} Confirmation client (requis pour libérer)</span>
             <span style="font-size:10px;padding:4px 8px;border-radius:6px;font-weight:700;background:${o.client_qr_confirmed?'rgba(0,230,118,.12)':'rgba(255,255,255,.05)'};color:${o.client_qr_confirmed?'var(--gr)':'var(--mt2)'};border:1px solid ${o.client_qr_confirmed?'rgba(0,230,118,.3)':'var(--bd2)'};">${o.client_qr_confirmed?'✅':'—'} QR prestataire validé (optionnel)</span>
           </div>` : ''}
+          ${o.relance_confirmation_livraison_at ? `<div style="font-size:10px;color:var(--yw);background:rgba(255,179,0,.06);border:1px solid rgba(255,179,0,.2);border-radius:6px;padding:5px 8px;margin-bottom:8px;">⏳ Client relancé le ${new Date(o.relance_confirmation_livraison_at).toLocaleDateString('fr-FR')} — échéance 15j : ${o.relance_confirmation_livraison_deadline ? new Date(o.relance_confirmation_livraison_deadline).toLocaleDateString('fr-FR') : '—'} (libération toujours manuelle)</div>` : ''}
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             ${o.statut==='en_attente_confirmation'?`<span style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.22);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;">Attente decision prestataire</span>`:''}
             ${(o.statut==='paiement_a_valider_admin' || (o.statut==='paye_en_attente_service' && !lcCanClientSeeQr(o)))?`<button onclick="adminValidatePayment('${o.id}')" style="background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.35);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">✅ Paiement reçu / lancer service</button>`:''}
             ${(['en_attente_paiement','paiement_a_valider_admin'].includes(o.statut))?`<button onclick="adminRelancerPaiement('${o.id}')" style="background:rgba(255,77,0,.1);border:1px solid rgba(255,77,0,.3);color:var(--or);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">🔁 Relancer client (paiement non reçu)</button>`:''}
+            ${(['paye_en_attente_service','attente_comptabilite'].includes(o.statut))?`<button onclick="adminRelancerConfirmationLivraison('${o.id}')" style="background:rgba(255,179,0,.1);border:1px solid rgba(255,179,0,.3);color:var(--yw);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">📨 Relancer client (confirmer livraison — 15j)</button>`:''}
             ${(['attente_comptabilite','confirme_client'].includes(o.statut))?`<button onclick="adminReleaseFunds('${o.id}')" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700;">💸 Libérer ${lcMoney(net, cur)}</button>`:''}
             ${o.statut==='termine'?`<button onclick="generateFondsLiberesPDF(escrowOrders.find(x=>x.id==='${o.id}'))" style="background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.2);color:var(--bl);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;">📄 PDF</button>`:''}
             ${o.statut==='paye_en_attente_service'?`<button onclick="disputeOrder('${o.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;">⚠️ Litige</button>`:''}
@@ -12315,7 +12425,7 @@ function renderAdminDash() {
           + '<div style="background:var(--c2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--mt);text-transform:uppercase;font-weight:800;margin-bottom:8px;">Description (max 200 caractères)</div><div style="font-size:13px;color:#fff;line-height:1.5;white-space:pre-wrap;">' + escAnn(desc || 'Aucune description') + '</div></div>'
           + (video ? '<div style="background:rgba(255,77,0,.05);border:1px solid rgba(255,77,0,.18);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--or);word-break:break-word;"><b>🎥 Vidéo :</b> <a href="' + escAnn(video) + '" target="_blank" style="color:var(--or);text-decoration:underline;">Voir la vidéo</a></div>' : '')
           + ((op.lat && op.lng) ? '<div style="background:rgba(0,153,255,.05);border:1px solid rgba(0,153,255,.18);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--bl);"><b>📍 GPS :</b> ' + escAnn(op.lat) + ', ' + escAnn(op.lng) + '</div>' : '')
-          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:var(--mt2);margin-bottom:16px;"><div>Email<br><b style="color:#fff;">' + escAnn(op.email || '-') + '</b></div><div>Téléphone<br><b style="color:#fff;">' + escAnn(op.tel || op.whatsapp || '-') + '</b></div><div>Devise<br><b style="color:var(--or);">' + escAnn(cur) + '</b></div><div>Statut<br><b style="color:' + (pending?'var(--yw)':'var(--gr)') + ';">' + (pending?'En attente':'Publiée') + '</b></div></div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:var(--mt2);margin-bottom:16px;"><div>Email<br><b style="color:#fff;">' + escAnn(op.email || '-') + '</b></div><div>Téléphone<br><b style="color:#fff;">' + escAnn(op.tel || op.whatsapp || '-') + '</b></div><div>Devise<br><b style="color:var(--or);">' + escAnn(cur) + '</b></div><div>Statut<br><b style="color:' + (pending?'var(--yw)':'var(--gr)') + ';">' + (pending?'En attente de validation admin':'Publiée') + '</b></div></div>'
           + (pending ? '<div style="display:flex;gap:10px;"><button onclick="adminPublierAnnonce(\'' + escAnn(op.id) + '\');document.getElementById(\'admin-annonce-view-modal\')?.remove();" style="flex:1;background:var(--gr);color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer;">✅ Publier</button><button onclick="adminRejeterAnnonce(\'' + escAnn(op.id) + '\');document.getElementById(\'admin-annonce-view-modal\')?.remove();" style="flex:1;background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.25);color:var(--rd);padding:12px;border-radius:10px;font-weight:800;cursor:pointer;">❌ Rejeter</button></div>' : '')
           + '</div>';
         document.body.appendChild(m);
@@ -12339,7 +12449,7 @@ function renderAdminDash() {
           const idSafe = escAnn(op.id);
           return '<div style="background:var(--c2);border:1px solid ' + (isPending?'rgba(255,179,0,.35)':'var(--bd)') + ';border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;">'
             + '<div style="font-size:28px;flex-shrink:0;">' + escAnn(op.ic || (op.type==='tr'?'🚚':'🏭')) + '</div>'
-            + '<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><div style="font-size:14px;font-weight:800;color:#fff;">' + escAnn(op.name || 'Annonce') + '</div><span style="background:rgba(0,153,255,.1);color:var(--bl);font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + typeLabel + '</span><span style="background:' + (isPending?'rgba(255,179,0,.15)':'rgba(0,230,118,.12)') + ';color:' + (isPending?'var(--yw)':'var(--gr)') + ';font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + (isPending?'⏳ EN ATTENTE':'✅ PUBLIÉE') + '</span></div>'
+            + '<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><div style="font-size:14px;font-weight:800;color:#fff;">' + escAnn(op.name || 'Annonce') + '</div><span style="background:rgba(0,153,255,.1);color:var(--bl);font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + typeLabel + '</span><span style="background:' + (isPending?'rgba(255,179,0,.15)':'rgba(0,230,118,.12)') + ';color:' + (isPending?'var(--yw)':'var(--gr)') + ';font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + (isPending?'⏳ EN ATTENTE DE VALIDATION ADMIN':'✅ PUBLIÉE') + '</span></div>'
             + '<div style="font-size:11px;color:var(--mt2);">📍 ' + escAnn(op.loc || op.pays || '') + ' &nbsp;·&nbsp; <span style="color:var(--or);font-weight:800;">' + escAnn(lcMoney(op.price || 0, cur)) + '/' + escAnn(op.unit || '') + '</span></div>'
             + (desc ? '<div style="font-size:11px;color:var(--mt2);margin-top:6px;border-top:1px solid var(--bd);padding-top:6px;">' + escAnn(desc) + '</div>' : '') + '</div>'
             + '<div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:120px;"><button onclick="adminVoirAnnonce(\'' + idSafe + '\',' + isPending + ')" style="background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.25);color:var(--bl);padding:8px 12px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">👁️ Voir annonce</button>'
@@ -14918,6 +15028,25 @@ function adminSearchByOrder() {
     };
   }
 
+  window.lcInstallApp = async function() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch(e) {}
+      deferredPrompt = null;
+      if (installBox) { installBox.remove(); installBox = null; }
+      return;
+    }
+    if (isStandalone) {
+      if (typeof showNotif === 'function') showNotif('✅', 'Déjà installé', 'LogiConnect est déjà installé sur cet appareil.');
+      return;
+    }
+    if (typeof showNotif === 'function') {
+      showNotif('PWA', 'Installation', 'Sur Android Chrome : menu ⋮ puis "Installer l\'application" ou "Ajouter à l\'écran d\'accueil". Sur iPhone (Safari) : bouton Partager puis "Sur l\'écran d\'accueil".');
+    } else {
+      alert('Sur Android Chrome : menu ⋮ puis Installer l application ou Ajouter a l ecran d accueil.\nSur iPhone (Safari) : bouton Partager puis "Sur l ecran d accueil".');
+    }
+  };
+
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault();
     deferredPrompt = e;
@@ -15190,9 +15319,9 @@ function adminSearchByOrder() {
 
   function lcIsAutoRegistrationAnnonce(a) {
     if (!a) return false;
-    var id = String(a.id || '');
-    if (id.indexOf('ins_') === 0) return true;
-    return id.indexOf('user_') === 0 && !a.photo && !a.video && !a.video_url;
+    return a.auto_generated === true ||
+      a.source === 'auto_registration' ||
+      a.source === 'system_auto_registration';
   }
   function lcCleanAutoRegistrationAnnouncements() {
     try {
@@ -15307,9 +15436,9 @@ function adminSearchByOrder() {
     try {
       if (!currentUser) return [];
       if (lcIsAdminUser()) return escrowOrders || [];
-      var email = currentUser.email || '';
+      var email = String(currentUser.email || '').toLowerCase();
       return (escrowOrders || []).filter(function(o){
-        return o.client_email === email || o.prestataire_email === email || o.prestataire_user_id === email;
+        return String(o.client_email||'').toLowerCase() === email || String(o.prestataire_email||'').toLowerCase() === email || String(o.prestataire_user_id||'').toLowerCase() === email;
       });
     } catch(e) { return []; }
   }
@@ -15379,6 +15508,13 @@ function adminSearchByOrder() {
     if (!orderId || !type || !desc) { lcNotifyProtection('Litige incomplet', 'Commande, type et description sont obligatoires.'); return; }
     var order = lcOrder(orderId);
     if (!order) { lcNotifyProtection('Commande introuvable', 'Verifiez le numero de commande.'); return; }
+    // Anti-doublon : un seul dossier litige actif (non résolu) par commande.
+    var existingCase = lcLoadCases().find(function(c){ return c.order_id === orderId && !c.resolved_at; });
+    if (existingCase) {
+      lcNotifyProtection('Litige déjà ouvert', 'Un dossier (' + existingCase.id + ') est déjà en cours pour cette commande. Ajoutez votre message dans ce dossier ci-dessous.');
+      renderLitigePage();
+      return;
+    }
     var proofs = await lcFilesToProofs(document.getElementById('litige-proofs'));
     var role = currentUser.type === 'client' ? 'client' : (lcIsAdminUser() ? 'admin' : 'prestataire');
     var c = {
@@ -15431,6 +15567,19 @@ function adminSearchByOrder() {
     if (!c) return;
     var order = lcOrder(c.order_id);
     var amount = order ? (parseFloat(order.montant) || 0) : 0;
+    var cur = order ? (order.devise_locale || order.currency || 'DZD') : 'DZD';
+    var previewAmount, previewLabel;
+    if (decision === 'client') {
+      previewAmount = amount;
+      previewLabel = 'Rembourser au client ' + lcMoney(previewAmount, cur) + ' (montant total de la commande). Le prestataire ne recevra rien.';
+    } else if (decision === 'prestataire') {
+      previewAmount = order ? order.net_prestataire : amount;
+      previewLabel = 'Liberer au prestataire ' + lcMoney(previewAmount, cur) + '. Aucun remboursement au client.';
+    } else {
+      previewAmount = amount / 2;
+      previewLabel = 'Partager : ' + lcMoney(previewAmount, cur) + ' au client et ' + lcMoney(order ? Math.round((order.net_prestataire || amount) / 2) : previewAmount, cur) + ' au prestataire.';
+    }
+    if (!confirm('Confirmer la decision sur le dossier ' + caseId + ' ?\n\n' + previewLabel + '\n\nCette action est definitive et ne peut pas etre annulee.')) return;
     if (decision === 'client') {
       c.statut = 'resolu_client';
       c.decision = 'Liberation/remboursement vers client';
@@ -15491,7 +15640,8 @@ function adminSearchByOrder() {
     var cases = lcLoadCases().filter(function(c){
       if (lcIsAdminUser()) return true;
       var o = lcOrder(c.order_id) || {};
-      return c.declarant_id === lcCurrentId() || o.client_email === currentUser.email || o.prestataire_email === currentUser.email || o.prestataire_user_id === currentUser.email;
+      var curEmailLower = String(currentUser.email||'').toLowerCase();
+      return c.declarant_id === lcCurrentId() || String(o.client_email||'').toLowerCase() === curEmailLower || String(o.prestataire_email||'').toLowerCase() === curEmailLower || String(o.prestataire_user_id||'').toLowerCase() === curEmailLower;
     });
     root.innerHTML =
       '<div class="lc-protect-card"><div class="lc-protect-title">Systeme de litige securise</div><div class="lc-protect-muted">Un litige gele automatiquement les fonds escrow et ouvre une timeline visible par les parties et l administrateur.</div></div>' +
@@ -15677,7 +15827,8 @@ function adminSearchByOrder() {
     var root = document.getElementById('lc-scan-root'); if (!root) return;
     if (!currentUser) { root.innerHTML = '<div class="lc-protect-card"><div class="lc-protect-title">Connexion requise</div><button class="btn-full" onclick="openModal(\'login-modal\')">Se connecter</button></div>'; return; }
     if (['transporteur','stockage','ambassadeur'].includes(currentUser.type)) {
-      var providerOrders = (escrowOrders || []).filter(function(o){ return ['paye_en_attente_service','attente_comptabilite','confirme_client'].includes(o.statut) && (o.prestataire_email === currentUser.email || o.prestataire_user_id === currentUser.email); });
+      var curEmailLowerQr = String(currentUser.email||'').toLowerCase();
+      var providerOrders = (escrowOrders || []).filter(function(o){ return ['paye_en_attente_service','attente_comptabilite','confirme_client'].includes(o.statut) && (String(o.prestataire_email||'').toLowerCase() === curEmailLowerQr || String(o.prestataire_user_id||'').toLowerCase() === curEmailLowerQr); });
       root.innerHTML = '<div class="lc-protect-card"><div class="lc-protect-title">QR livraison côté prestataire</div><div class="lc-protect-muted">Présentez ce QR au client à la livraison. Le QR est unique, expire après 30 jours et ne peut être validé qu\'une seule fois.</div></div>' +
         (providerOrders.length ? providerOrders.map(function(o){ var payload = lcEnsureDeliveryQr(o); return '<div class="lc-protect-card"><div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;"><div class="lc-qr-box" data-lc-delivery-qr="' + lcEsc(payload) + '"></div><div style="flex:1;min-width:220px;"><div class="lc-protect-title">' + lcEsc(o.service) + '</div><div class="lc-protect-muted">Commande ' + lcEsc(o.id) + ' - ' + lcEsc(o.service_loc || '') + '</div><div class="lc-share-row"><button class="lc-share-btn wa" onclick="lcDownloadDeliveryQr(\'' + o.id + '\')">Télécharger QR</button><button class="lc-share-btn" onclick="lcShareExternal(\'whatsapp\',\'' + lcEsc(payload) + '\',location.href,\'QR livraison LogiConnect\')">Partager WhatsApp</button><button class="lc-share-btn mail" onclick="lcDelegateGps(\'' + o.id + '\')">Déléguer GPS</button></div></div></div></div>'; }).join('') : '<div class="lc-protect-card"><div class="lc-protect-muted">Aucune commande active avec QR livraison.</div></div>');
       setTimeout(lcRenderProviderQrs, 80);
@@ -16045,12 +16196,12 @@ function adminSearchByOrder() {
     return !!(o && ['paye_en_attente_service','attente_comptabilite','confirme_client'].indexOf(o.statut) >= 0);
   }
   function providerOwns(o) {
-    var email = userEmail();
-    return !!(o && email && (o.prestataire_email === email || o.prestataire_user_id === email || o.provider_email === email));
+    var email = String(userEmail()||'').toLowerCase();
+    return !!(o && email && (String(o.prestataire_email||'').toLowerCase() === email || String(o.prestataire_user_id||'').toLowerCase() === email || String(o.provider_email||'').toLowerCase() === email));
   }
   function clientOwns(o) {
-    var email = userEmail();
-    return !!(o && email && o.client_email === email);
+    var email = String(userEmail()||'').toLowerCase();
+    return !!(o && email && String(o.client_email||'').toLowerCase() === email);
   }
   function visibleOrders() {
     var all = (typeof escrowOrders !== 'undefined' && Array.isArray(escrowOrders)) ? escrowOrders : [];

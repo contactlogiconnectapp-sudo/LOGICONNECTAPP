@@ -2,7 +2,7 @@
   "name": "LogiConnect",
   "short_name": "LogiConnect",
   "description": "Plateforme logistique mondiale pour le transport, le stockage et les annonces.",
-  "start_url": "./index%20(70).html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#050505",

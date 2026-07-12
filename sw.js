@@ -1,5 +1,5 @@
 const CACHE_NAME = 'logiconnect-pwa-v1';
-const APP_SHELL = './index%20(70).html';
+const APP_SHELL = './index.html';
 const PRECACHE_URLS = [
   APP_SHELL,
   './manifest.webmanifest',
