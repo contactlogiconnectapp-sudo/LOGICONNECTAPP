@@ -8498,14 +8498,14 @@ function renderUserDash() {
           const myPending = loadPendingAnnonces().filter(a => a.userId === u.email || a.email === u.email);
           if (!myPending.length) return '';
           return `<div style="background:rgba(255,179,0,.06);border:1px solid rgba(255,179,0,.3);border-radius:14px;padding:16px;margin-bottom:20px;">
-            <div style="font-size:13px;font-weight:700;color:var(--yw);margin-bottom:12px;">⏳ En attente de validation (${myPending.length})</div>
+            <div style="font-size:13px;font-weight:700;color:var(--yw);margin-bottom:12px;">⏳ En attente de validation admin (${myPending.length})</div>
             ${myPending.map(a => `<div style="display:flex;align-items:center;gap:12px;background:var(--dk);border:1px solid var(--bd2);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
               <span style="font-size:20px;">${a.ic}</span>
               <div style="flex:1;min-width:0;">
                 <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.name}</div>
                 <div style="font-size:11px;color:var(--mt2);">📍 ${a.loc} &nbsp;·&nbsp; <span style="color:var(--or);">${lcMoney(a.price, lcCurrencyForListing(a))}/${a.unit}</span></div>
               </div>
-              <span style="background:rgba(255,179,0,.15);color:var(--yw);font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap;">⏳ En attente</span>
+              <span style="background:rgba(255,179,0,.15);color:var(--yw);font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap;">⏳ En attente admin</span>
             </div>`).join('')}
           </div>`;
         })()}
@@ -12012,7 +12012,7 @@ function renderAdminDash() {
             <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;">📣 Annonces sur la Plateforme</div>
             <button onclick="window._adminNav('annonces')" style="background:var(--or);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Gérer les annonces →</button>
           </div>
-          ${loadPendingAnnonces().length>0?`<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;padding:11px 16px;margin-bottom:14px;font-size:13px;color:var(--yw);display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window._adminNav('annonces')"><span style="font-size:18px;">🔔</span> <b>${loadPendingAnnonces().length} annonce${loadPendingAnnonces().length>1?'s':''}</b> en attente de validation — <b>Cliquez ici pour valider</b></div>`:''}
+          ${loadPendingAnnonces().length>0?`<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.3);border-radius:10px;padding:11px 16px;margin-bottom:14px;font-size:13px;color:var(--yw);display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window._adminNav('annonces')"><span style="font-size:18px;">🔔</span> <b>${loadPendingAnnonces().length} annonce${loadPendingAnnonces().length>1?'s':''}</b> en attente de validation admin — <b>Cliquez ici pour valider</b></div>`:''}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
             <div style="background:var(--c2);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
               <div style="font-size:24px;font-weight:900;color:var(--gr);font-family:'Syne',sans-serif;">${loadOperators().filter(o=>o.type==='tr').length}</div>
@@ -12425,7 +12425,7 @@ function renderAdminDash() {
           + '<div style="background:var(--c2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--mt);text-transform:uppercase;font-weight:800;margin-bottom:8px;">Description (max 200 caractères)</div><div style="font-size:13px;color:#fff;line-height:1.5;white-space:pre-wrap;">' + escAnn(desc || 'Aucune description') + '</div></div>'
           + (video ? '<div style="background:rgba(255,77,0,.05);border:1px solid rgba(255,77,0,.18);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--or);word-break:break-word;"><b>🎥 Vidéo :</b> <a href="' + escAnn(video) + '" target="_blank" style="color:var(--or);text-decoration:underline;">Voir la vidéo</a></div>' : '')
           + ((op.lat && op.lng) ? '<div style="background:rgba(0,153,255,.05);border:1px solid rgba(0,153,255,.18);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--bl);"><b>📍 GPS :</b> ' + escAnn(op.lat) + ', ' + escAnn(op.lng) + '</div>' : '')
-          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:var(--mt2);margin-bottom:16px;"><div>Email<br><b style="color:#fff;">' + escAnn(op.email || '-') + '</b></div><div>Téléphone<br><b style="color:#fff;">' + escAnn(op.tel || op.whatsapp || '-') + '</b></div><div>Devise<br><b style="color:var(--or);">' + escAnn(cur) + '</b></div><div>Statut<br><b style="color:' + (pending?'var(--yw)':'var(--gr)') + ';">' + (pending?'En attente':'Publiée') + '</b></div></div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:var(--mt2);margin-bottom:16px;"><div>Email<br><b style="color:#fff;">' + escAnn(op.email || '-') + '</b></div><div>Téléphone<br><b style="color:#fff;">' + escAnn(op.tel || op.whatsapp || '-') + '</b></div><div>Devise<br><b style="color:var(--or);">' + escAnn(cur) + '</b></div><div>Statut<br><b style="color:' + (pending?'var(--yw)':'var(--gr)') + ';">' + (pending?'En attente de validation admin':'Publiée') + '</b></div></div>'
           + (pending ? '<div style="display:flex;gap:10px;"><button onclick="adminPublierAnnonce(\'' + escAnn(op.id) + '\');document.getElementById(\'admin-annonce-view-modal\')?.remove();" style="flex:1;background:var(--gr);color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer;">✅ Publier</button><button onclick="adminRejeterAnnonce(\'' + escAnn(op.id) + '\');document.getElementById(\'admin-annonce-view-modal\')?.remove();" style="flex:1;background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.25);color:var(--rd);padding:12px;border-radius:10px;font-weight:800;cursor:pointer;">❌ Rejeter</button></div>' : '')
           + '</div>';
         document.body.appendChild(m);
@@ -12449,7 +12449,7 @@ function renderAdminDash() {
           const idSafe = escAnn(op.id);
           return '<div style="background:var(--c2);border:1px solid ' + (isPending?'rgba(255,179,0,.35)':'var(--bd)') + ';border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;">'
             + '<div style="font-size:28px;flex-shrink:0;">' + escAnn(op.ic || (op.type==='tr'?'🚚':'🏭')) + '</div>'
-            + '<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><div style="font-size:14px;font-weight:800;color:#fff;">' + escAnn(op.name || 'Annonce') + '</div><span style="background:rgba(0,153,255,.1);color:var(--bl);font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + typeLabel + '</span><span style="background:' + (isPending?'rgba(255,179,0,.15)':'rgba(0,230,118,.12)') + ';color:' + (isPending?'var(--yw)':'var(--gr)') + ';font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + (isPending?'⏳ EN ATTENTE':'✅ PUBLIÉE') + '</span></div>'
+            + '<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><div style="font-size:14px;font-weight:800;color:#fff;">' + escAnn(op.name || 'Annonce') + '</div><span style="background:rgba(0,153,255,.1);color:var(--bl);font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + typeLabel + '</span><span style="background:' + (isPending?'rgba(255,179,0,.15)':'rgba(0,230,118,.12)') + ';color:' + (isPending?'var(--yw)':'var(--gr)') + ';font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;">' + (isPending?'⏳ EN ATTENTE DE VALIDATION ADMIN':'✅ PUBLIÉE') + '</span></div>'
             + '<div style="font-size:11px;color:var(--mt2);">📍 ' + escAnn(op.loc || op.pays || '') + ' &nbsp;·&nbsp; <span style="color:var(--or);font-weight:800;">' + escAnn(lcMoney(op.price || 0, cur)) + '/' + escAnn(op.unit || '') + '</span></div>'
             + (desc ? '<div style="font-size:11px;color:var(--mt2);margin-top:6px;border-top:1px solid var(--bd);padding-top:6px;">' + escAnn(desc) + '</div>' : '') + '</div>'
             + '<div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:120px;"><button onclick="adminVoirAnnonce(\'' + idSafe + '\',' + isPending + ')" style="background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.25);color:var(--bl);padding:8px 12px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">👁️ Voir annonce</button>'
@@ -15319,9 +15319,9 @@ function adminSearchByOrder() {
 
   function lcIsAutoRegistrationAnnonce(a) {
     if (!a) return false;
-    var id = String(a.id || '');
-    if (id.indexOf('ins_') === 0) return true;
-    return id.indexOf('user_') === 0 && !a.photo && !a.video && !a.video_url;
+    return a.auto_generated === true ||
+      a.source === 'auto_registration' ||
+      a.source === 'system_auto_registration';
   }
   function lcCleanAutoRegistrationAnnouncements() {
     try {
