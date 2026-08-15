@@ -5046,7 +5046,7 @@ if (location.protocol === 'http:' && location.hostname !== 'localhost' && locati
 // CONFIG PAIEMENT — à personnaliser
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_VOTRE_CLE_STRIPE_PUBLIQUE'; // ⚠️ Remplacez par votre clé Stripe publique
-const PAYPAL_ME_LINK  = 'https://www.paypal.com/ncp/payment/HPFV5UJVSS4GU'; // ✅ Hosted Button PayPal (lien de secours)
+const PAYPAL_ME_LINK  = 'https://paypal.me/LOGICONNECTWORLD'; // ✅ Lien PayPal.Me (montant dynamique supporté)
 const BANK_IBAN       = 'MA64 0001 0000 1234 5678 9012';               // ⚠️ Votre IBAN
 const BANK_BIC        = 'BMCEMAMC';                                     // ⚠️ Votre BIC/SWIFT
 const BANK_NOM        = 'LogiConnect SARL';                             // ⚠️ Nom du bénéficiaire
@@ -14707,9 +14707,14 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
   function _buildPaypalUrl(amount, oid) {
     // ⚠️ L'ancienne méthode "cgi-bin/webscr?cmd=_xclick" (Website Payments Standard)
     // est obsolète côté PayPal et renvoie l'erreur "INVALID_BUSINESS_ERROR" pour la
-    // plupart des comptes. On utilise désormais uniquement le lien de paiement hébergé
-    // (PayPal.me / bouton hébergé), qui est fiable et à jour.
-    return (paypalMeLink && paypalMeLink.length > 10) ? paypalMeLink : 'https://www.paypal.com/ncp/payment/YFR9FPKX68TQA';
+    // plupart des comptes. On utilise désormais le lien PayPal.Me, fiable et à jour,
+    // avec le montant exact ajouté directement dans l'URL (ex: paypal.me/Nom/25USD).
+    var base = (paypalMeLink && paypalMeLink.length > 10) ? paypalMeLink : PAYPAL_ME_LINK;
+    var amtStr = parseFloat(amount).toFixed(2);
+    if (/paypal\.me\//i.test(base)) {
+      return base.replace(/\/$/, '') + '/' + amtStr + 'USD';
+    }
+    return base;
   }
 
   var paypalUrl = _buildPaypalUrl(montantUSD, orderId);
