@@ -15410,6 +15410,35 @@ function adminSearchByOrder() {
   }
 
   function lcLoadCases() { return lcRead('lc_litigation_cases', []); }
+  // FIX: les dossiers litige n'étaient jamais synchronisés depuis Supabase (lecture
+  // uniquement de localStorage 'lc_litigation_cases'). Un litige ouvert par un client
+  // sur son appareil n'apparaissait donc jamais chez le prestataire (transporteur/stockeur)
+  // connecté sur un autre appareil/navigateur — seul l'admin, via un accès direct, le voyait.
+  // On charge maintenant 'litigation_cases' depuis Supabase et on fusionne en local
+  // avant chaque affichage de la page litige.
+  window.lcSyncLitigationCasesFromSupabase = async function() {
+    if (typeof db === 'undefined' || !db || typeof currentUser === 'undefined' || !currentUser) return;
+    try {
+      var query = db.from('litigation_cases').select('*');
+      var isAdmin = (typeof lcIsAdminUser === 'function' && lcIsAdminUser());
+      if (!isAdmin) {
+        var email = String(currentUser.email || '').toLowerCase();
+        var relevantOrderIds = lcRelevantOrdersForUser().map(function(o){ return o.id; });
+        if (!relevantOrderIds.length) return;
+        query = query.in('order_id', relevantOrderIds);
+      }
+      var res = await query;
+      var rows = res && res.data ? res.data : [];
+      if (!rows.length) return;
+      var cases = lcLoadCases();
+      rows.forEach(function(row) {
+        var idx = cases.findIndex(function(c){ return c.id === row.id; });
+        if (idx >= 0) cases[idx] = Object.assign({}, cases[idx], row);
+        else cases.unshift(row);
+      });
+      lcSaveCases(cases);
+    } catch(e) { console.warn('Supabase litigation_cases sync:', e); }
+  };
   function lcSaveCases(cases) { lcWrite('lc_litigation_cases', cases || []); }
   function lcLitigeOptions(role) {
     if (role === 'client') return ['Marchandise non recue','Qualite non conforme','Quantite incorrecte','Retard excessif'];
@@ -15613,6 +15642,11 @@ function adminSearchByOrder() {
     if (!root) return;
     if (!currentUser) {
       root.innerHTML = '<div class="lc-protect-card"><div class="lc-protect-title">Connexion requise</div><button class="btn-full" onclick="openModal(\'login-modal\')">Se connecter</button></div>';
+      return;
+    }
+    if (typeof db !== 'undefined' && db && !renderLitigePage._supaLoaded) {
+      renderLitigePage._supaLoaded = true;
+      window.lcSyncLitigationCasesFromSupabase().then(function(){ renderLitigePage(); });
       return;
     }
     var role = currentUser.type === 'client' ? 'client' : 'prestataire';
