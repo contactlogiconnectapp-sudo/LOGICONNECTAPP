@@ -15,7 +15,7 @@ export default async (req) => {
   const commandeId = String(resource.custom_id || resource.custom || "");
   const txnId = String(resource.id || event.id || "");
   if (!commandeId) return json(202, { accepted: false, reason: "missing_custom_id" });
-  const secret = globalThis.Netlify?.env?.get?.("ESCROW_WEBHOOK_SECRET") || "";
+  const secret = process.env.ESCROW_WEBHOOK_SECRET || "";
   const res = await fetch("https://fhabovjsikqshprnltci.supabase.co/rest/v1/rpc/escrow_webhook_fonds_bloques", {
     method: "POST",
     headers: {
