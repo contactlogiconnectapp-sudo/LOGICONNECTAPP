@@ -3,7 +3,18 @@ export default async (req) => {
     status: s,
     headers: { "content-type": "application/json" },
   });
-  if (req.method === "GET") return json(200, { ok: true, service: "paypal-webhook" });
+  const secret =
+    (typeof process !== "undefined" && process.env && process.env.ESCROW_WEBHOOK_SECRET) ||
+    (typeof Netlify !== "undefined" && Netlify.env && Netlify.env.get && Netlify.env.get("ESCROW_WEBHOOK_SECRET")) ||
+    "";
+  if (req.method === "GET") {
+    return json(200, {
+      ok: true,
+      service: "paypal-webhook",
+      hasSecret: secret.length > 0,
+      secretLen: secret.length,
+    });
+  }
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
   let event;
   try { event = await req.json(); } catch { return json(400, { error: "invalid_json" }); }
@@ -15,7 +26,6 @@ export default async (req) => {
   const commandeId = String(resource.custom_id || resource.custom || "");
   const txnId = String(resource.id || event.id || "");
   if (!commandeId) return json(202, { accepted: false, reason: "missing_custom_id" });
-  const secret = process.env.ESCROW_WEBHOOK_SECRET || "";
   const res = await fetch("https://fhabovjsikqshprnltci.supabase.co/rest/v1/rpc/escrow_webhook_fonds_bloques", {
     method: "POST",
     headers: {
