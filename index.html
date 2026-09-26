@@ -6713,8 +6713,8 @@ async function doRegister(type) {
   // Check doublon Supabase
   if (db) {
     try {
-      const { data } = await db.from('inscriptions').select('email').ilike('email', email);
-      if (data && data.length > 0) {
+      const { data: existingEmails } = await db.from('inscriptions').select('email').ilike('email', email);
+      if (existingEmails && existingEmails.length > 0) {
         showAlert('alert-'+type, '❌ Cet email est déjà utilisé. Connectez-vous.', 'err');
         btn.disabled=false; btn.textContent=labels[type]; return;
       }
@@ -6797,7 +6797,17 @@ async function doRegister(type) {
   }
 
   // Save to Supabase if available
-  if (db) { try { await db.from('inscriptions').insert([data]); } catch(e) { console.warn('Supabase:', e); } }
+  if (!db) {
+    showAlert('alert-'+type, '❌ Supabase non connecté', 'err');
+    btn.disabled=false; btn.textContent=labels[type]; return;
+  }
+  {
+    const { error: insErr } = await db.from('inscriptions').insert([data]);
+    if (insErr) {
+      showAlert('alert-'+type, '❌ Inscription non enregistrée : ' + insErr.message, 'err');
+      btn.disabled=false; btn.textContent=labels[type]; return;
+    }
+  }
 
   // Sauvegarder aussi localement pour la recherche (fallback sans Supabase)
   try {
