@@ -3052,6 +3052,12 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-MDTZ28PP');</script>
+<!-- End Google Tag Manager --><!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MDTZ28PP');</script>
 <!-- End Google Tag Manager --></head>
 <body>
 
@@ -8814,7 +8820,21 @@ function renderUserDash() {
           const pend = loadPendingAnnonces();
           pend.push(newAnnonce);
           savePendingAnnonces(pend);
-          showNotif('🕐', 'Annonce soumise !', '"' + titre + '" est en attente de validation par l\'administrateur avant publication.');
+          if (!db) { showNotif('❌','Supabase requis','Offre non enregistree.'); return; }
+          db.from('annonces').upsert([{
+            id: newAnnonce.id, type: newAnnonce.type, ic: newAnnonce.ic, name: newAnnonce.name,
+            loc: newAnnonce.loc, description: newAnnonce.description || '', chips: newAnnonce.chips || [],
+            price: newAnnonce.price, unit: newAnnonce.unit, tel: newAnnonce.tel || '',
+            whatsapp: newAnnonce.whatsapp || '', email: newAnnonce.email, userId: newAnnonce.userId,
+            tarifs: newAnnonce.tarifs || '', pays: newAnnonce.pays || '', pays_creation: newAnnonce.pays_creation || '',
+            devise: newAnnonce.devise || '', currency: newAnnonce.currency || '', photo: newAnnonce.photo || null,
+            statut: 'en_attente_validation', published: false, visible: false
+          }], { onConflict: 'id' }).then(function(res) {
+            if (res && res.error) { showNotif('❌','Offre non enregistree', res.error.message || 'Erreur Supabase'); return; }
+            showNotif('🕐', 'Annonce soumise !', '"' + titre + '" est en attente de validation admin.');
+            renderSection('services');
+          });
+          return;
         }
         renderSection('services');
       };
@@ -10380,12 +10400,9 @@ async function filterCards() {
   // Recharge toujours depuis localStorage
   operators = loadOperators();
 
-  // Charger les annonces Supabase + cache local une seule fois par session
-  if (!filterCards._supaLoaded) {
-    filterCards._supaLoaded = true;
-    try { await loadAnnoncesfromInscriptions(); } catch(e) { console.warn('Chargement annonces:', e); }
-    operators = loadOperators();
-  }
+  // Toujours recharger les annonces publiees depuis Supabase
+  try { await loadAnnoncesfromInscriptions(); } catch(e) { console.warn('Chargement annonces:', e); }
+  operators = loadOperators();
 
   let filtered = lcFilterListingsWithFilters(filters, operators);
   if (typeof lcPrimeSearchListingCache === 'function') lcPrimeSearchListingCache(filtered);
@@ -17175,6 +17192,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // ═══════ FIN PANNEAU FILTRE FLOTTANT CARTE ═══════
 </script>
 <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MDTZ28PP"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) --><!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MDTZ28PP"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) --><!-- Google Tag Manager (noscript) -->
