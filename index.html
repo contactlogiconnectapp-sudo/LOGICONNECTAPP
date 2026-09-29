@@ -3058,6 +3058,12 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-MDTZ28PP');</script>
+<!-- End Google Tag Manager --><!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MDTZ28PP');</script>
 <!-- End Google Tag Manager --></head>
 <body>
 
@@ -6926,15 +6932,40 @@ let escrowOrders = [];
 try { escrowOrders = JSON.parse(localStorage.getItem('lc_orders') || '[]'); } catch(e) {}
 try { lcNormalizeAllOrders(); } catch(e) {}
 
+function lcCommandeRow(order) {
+  if (!order) return null;
+  return {
+    id: String(order.id || ('cmd_' + Date.now())),
+    service: order.service || order.titre || order.name || 'Reservation',
+    service_type: order.service_type || order.type || null,
+    montant: Number(order.montant || order.price || order.total || 0),
+    commission: order.commission != null ? Number(order.commission) : null,
+    commission_rate: order.commission_rate != null ? Number(order.commission_rate) : 10,
+    net_prestataire: order.net_prestataire != null ? Number(order.net_prestataire) : null,
+    client_nom: order.client_nom || order.clientName || null,
+    client_email: order.client_email || order.clientEmail || order.email_client || null,
+    prestataire_email: order.prestataire_email || order.providerEmail || order.transporteur_email || order.email_prestataire || null,
+    prestataire_listing_id: order.prestataire_listing_id || order.listingId || order.annonce_id || null,
+    ambassadeur_code: order.ambassadeur_code || null,
+    statut: order.statut || order.status || 'en_attente_confirmation',
+    methode_paiement: order.methode_paiement || order.paiement || null,
+    details: order.details && typeof order.details === 'object' ? order.details : {},
+    escrow_status: order.escrow_status || order.statut || 'en_attente_confirmation',
+    devise: order.devise || order.currency || 'EUR',
+    pays_origine: order.pays_origine || order.pays || null,
+    pays_destination: order.pays_destination || null
+  };
+}
 function saveOrders() {
   localStorage.setItem('lc_orders', JSON.stringify(escrowOrders));
-  if (db) {
-    escrowOrders.forEach(function(order) {
-      db.from('commandes').upsert([order], { onConflict: 'id' }).then(function(res) {
-        if (res && res.error) console.warn('Supabase commandes upsert error:', res.error, order.id);
-      }).catch(function(e) { console.warn('Supabase commandes:', e); });
-    });
-  }
+  if (!db) return;
+  escrowOrders.forEach(function(order) {
+    var row = lcCommandeRow(order);
+    if (!row || !row.id) return;
+    db.from('commandes').upsert([row], { onConflict: 'id' }).then(function(res) {
+      if (res && res.error) console.warn('Supabase commandes upsert error:', res.error.message || res.error, row.id);
+    }).catch(function(e) { console.warn('Supabase commandes:', e); });
+  });
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -17192,6 +17223,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // ═══════ FIN PANNEAU FILTRE FLOTTANT CARTE ═══════
 </script>
 <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MDTZ28PP"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) --><!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MDTZ28PP"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) --><!-- Google Tag Manager (noscript) -->
