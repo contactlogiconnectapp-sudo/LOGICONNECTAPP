@@ -5822,6 +5822,25 @@ function lcQrUrl(order, size) { var s = size || 180; return 'https://api.qrserve
 function lcQrShareText(order) { return 'LogiConnect - QR confirmation prestation\nCommande: ' + order.id + '\nCode: ' + (order.service_token || '') + '\nLien QR: ' + lcQrUrl(order, 320); }
 function lcAdminPaymentApproved(order) { return !!(order && order.paiement_admin_confirme === true && order.ordre_execution_envoye === true); }
 function lcCanClientSeeQr(order) { return lcAdminPaymentApproved(order); }
+// Le code secret du QR est genere PAR LE SERVEUR, et donne uniquement au client, apres validation du paiement par l'admin.
+async function lcRefreshClientQrTokens(onlyId) {
+  if (typeof db === 'undefined' || !db || typeof currentUser === 'undefined' || !currentUser || !currentUser.email) return;
+  var me = String(currentUser.email).toLowerCase();
+  var okStatuts = ['paye_en_attente_service','attente_comptabilite','confirme_client'];
+  var list = (escrowOrders || []).filter(function(o) {
+    return (!onlyId || o.id === onlyId) && String(o.client_email || '').toLowerCase() === me && lcCanClientSeeQr(o) && okStatuts.indexOf(o.statut) >= 0;
+  });
+  var changed = false;
+  await Promise.all(list.map(async function(o) {
+    try {
+      var res = await db.rpc('lc_get_client_qr', { p_commande_id: o.id, p_email: me });
+      if (res && !res.error && res.data) {
+        if (o.service_token !== res.data) { o.service_token = res.data; o.service_qr_link = lcQrUrl(o, 320); changed = true; }
+      } else if (o.service_token) { o.service_token = ''; o.service_qr_link = ''; changed = true; }
+    } catch(e) {}
+  }));
+  if (changed) { try { localStorage.setItem('lc_orders', JSON.stringify(escrowOrders)); } catch(e) {} }
+}
 function lcCopyServiceQr(orderId) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order) return; if(!lcCanClientSeeQr(order)){ showNotif('🔒','QR bloqué','Le QR sera disponible après confirmation admin du paiement reçu.'); return; } try { navigator.clipboard.writeText(lcQrShareText(order)); showNotif('Copié','Code QR copié','Le code/lien QR est prêt à envoyer.'); } catch(e) { prompt('Code/lien QR à copier :', lcQrShareText(order)); } }
 // ✅ Envoi du QR en tant qu'IMAGE réelle (pas juste un lien) au prestataire/stockeur via le partage natif du téléphone
 async function lcShareQrAsImage(orderId) {
@@ -5859,11 +5878,15 @@ function openLargeServiceQr(orderId) {
   document.body.appendChild(m); m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
 }
 function lcQrClientHtml(order) {
-  if (!order || !order.service_token) return '';
+  if (!order) return '';
   if (order.statut === 'paiement_a_valider_admin' || (order.statut === 'paye_en_attente_service' && !lcCanClientSeeQr(order))) {
     return '<div style="background:rgba(255,179,0,.07);border:1px solid rgba(255,179,0,.25);border-radius:10px;padding:12px;margin-top:10px;display:flex;gap:10px;align-items:flex-start;"><span style="font-size:18px;flex-shrink:0;">🔒</span><div style="font-size:12px;color:var(--yw);line-height:1.5;"><b>QR non disponible pour le moment.</b><br>Il sera affiché uniquement après confirmation admin de la réception du paiement sur le compte LogiConnect. À ce moment, l\'ordre d\'exécution sera envoyé au transporteur/stockeur.</div></div>';
   }
   if (!lcCanClientSeeQr(order)) return '';
+  if (!order.service_token) {
+    if (order.statut !== 'paye_en_attente_service') return '';
+    return '<div style="background:rgba(0,153,255,.05);border:1px solid rgba(0,153,255,.2);border-radius:10px;padding:12px;margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><span style="font-size:12px;color:var(--bl);flex:1;min-width:180px;line-height:1.5;">QR de confirmation en cours de génération…</span><button onclick="lcRefreshClientQrTokens(\'' + order.id + '\').then(function(){ renderDashboard(); })" style="background:var(--or);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">Actualiser</button></div>';
+  }
   order.service_qr_link = lcQrUrl(order, 320);
   var photoHtml = order.delivery_photo_url
     ? '<div style="margin-top:8px;"><div style="font-size:10px;color:var(--gr);font-weight:700;margin-bottom:4px;">📸 PHOTO LIVRAISON</div><img src="'+order.delivery_photo_url+'" style="width:80px;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="lcViewDeliveryPhoto(\''+order.id+'\')"><button onclick="lcShareDeliveryPhoto(\''+order.id+'\')" style="display:block;margin-top:4px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">📤 Partager photo</button></div>'
@@ -5889,7 +5912,34 @@ function lcQrClientHtml(order) {
 }
 function lcStatusLabel(statut) { return {en_attente_confirmation:'Attente confirmation',en_attente_paiement:'À payer',paiement_a_valider_admin:'Paiement à valider par admin',paye_en_attente_service:'Service en cours',attente_comptabilite:'Preuve QR validée - attente comptabilité',confirme_client:'Réception confirmée',termine:'Terminée',litige:'Litige',refuse:'Refusée',annule_client:'Annulée par client'}[statut] || statut; }
 function lcMarkOrderAwaitingAccounting(order, source) { if (!order) return false; order.statut='attente_comptabilite'; order.date_validation_qr=new Date().toISOString(); order.validation_qr_source=source||'prestataire'; saveOrders(); addActivityLog('qr_service','Preuve QR validée - commande '+order.id+' - attente comptabilité'); return true; }
-function validateServiceQrToken(orderId, token) { var order=escrowOrders.find(function(o){return o.id===orderId;}); if(!order||!token) return false; var clean=String(token).trim(); if(clean.indexOf('LOGICONNECT|')===0){ var parts=clean.split('|'); clean=parts[2]||''; } if(clean!==order.service_token) return false; order.client_qr_confirmed = true; lcMarkOrderAwaitingAccounting(order,'qr_token'); try { saveOrders(); } catch(e) {} showNotif('OK','Preuve validée','Le service est passé en attente comptabilité.'); renderDashboard(); return true; }
+async function validateServiceQrToken(orderId, token) {
+  var order = escrowOrders.find(function(o){ return o.id === orderId; });
+  if (!order || !token) return false;
+  var clean = String(token).trim();
+  if (clean.indexOf('LOGICONNECT|') === 0) { var parts = clean.split('|'); clean = parts[2] || ''; }
+  if (!clean) return false;
+  if (typeof db === 'undefined' || !db || typeof currentUser === 'undefined' || !currentUser) { showNotif('⚠️', 'Connexion requise', 'Connectez-vous pour valider le code du client.'); return false; }
+  var res;
+  try { res = await db.rpc('lc_validate_qr', { p_commande_id: orderId, p_token: clean, p_email: String(currentUser.email || '').toLowerCase() }); }
+  catch(e) { res = { error: e }; }
+  if (res.error) {
+    var msg = String((res.error && res.error.message) || 'Erreur serveur');
+    if (msg.indexOf('pas encore ouvert') >= 0) msg = 'Le client doit d\'abord ouvrir son QR dans son espace.';
+    showNotif('⚠️', 'Validation impossible', msg);
+    return false;
+  }
+  var out = String(res.data || '');
+  if (out === 'bloque') { showNotif('🔒', 'QR bloqué', 'Trop d\'essais incorrects. Contactez l\'administrateur.'); return false; }
+  if (out.indexOf('invalide') === 0) { var left = out.split(':')[1] || '0'; showNotif('❌', 'Code invalide', 'Le code ne correspond pas. Essais restants : ' + left + '.'); return false; }
+  if (out !== 'ok') return false;
+  order.client_qr_confirmed = true;
+  order.provider_qr_confirmed = true;
+  lcMarkOrderAwaitingAccounting(order, 'qr_token');
+  try { saveOrders(); } catch(e) {}
+  showNotif('✅', 'Preuve validée', 'Le service est passé en attente comptabilité.');
+  renderDashboard();
+  return true;
+}
 // ✅ Scan camera reel du QR client (transporteur/stockeur) + saisie manuelle / code recu par WhatsApp en repli
 function lcExtractClientQrToken(raw) {
   var clean = String(raw || '').trim();
@@ -5945,7 +5995,7 @@ function openServiceQrScanner(orderId) {
             var modal = document.getElementById('lc-client-cam-scan-modal');
             if (modal) modal.remove();
             var token = lcExtractClientQrToken(code.data);
-            if (!validateServiceQrToken(orderId, token)) showNotif('Erreur', 'QR invalide', 'Le code ne correspond pas à cette commande.');
+            validateServiceQrToken(orderId, token);
             return;
           }
         } catch(e) {}
@@ -5966,8 +6016,7 @@ function lcValidateClientQrManual(orderId) {
   var raw = el ? el.value : '';
   var token = lcExtractClientQrToken(raw);
   if (!token) { showNotif('⚠️', 'Code manquant', 'Collez le code ou le contenu du QR transmis par le client.'); return; }
-  if (validateServiceQrToken(orderId, token)) lcStopClientCamScan();
-  else showNotif('Erreur', 'QR invalide', 'Le code ne correspond pas à cette commande.');
+  validateServiceQrToken(orderId, token).then(function(ok) { if (ok) lcStopClientCamScan(); });
 }
 function getDynPaypal()      { return getCfg('lc_cfg_paypal_email', PAYPAL_EMAIL); }
 function getDynPaypalLink()  { return getCfg('lc_cfg_paypal_link', PAYPAL_ME_LINK); }
@@ -6934,7 +6983,7 @@ try { lcNormalizeAllOrders(); } catch(e) {}
 
 function lcCommandeRow(order) {
   if (!order) return null;
-  return {
+  var row = {
     id: String(order.id || ('cmd_' + Date.now())),
     service: order.service || order.titre || order.name || 'Reservation',
     service_type: order.service_type || order.type || null,
@@ -6955,6 +7004,15 @@ function lcCommandeRow(order) {
     pays_origine: order.pays_origine || order.pays || null,
     pays_destination: order.pays_destination || null
   };
+  // Indicateurs QR / paiement admin : on n'envoie que les valeurs VRAIES.
+  // Ainsi un navigateur qui a une copie ancienne ne peut jamais les remettre a faux.
+  ['paiement_admin_confirme','ordre_execution_envoye','provider_qr_confirmed','client_qr_confirmed'].forEach(function(k) {
+    if (order[k] === true) row[k] = true;
+  });
+  ['date_validation_paiement_admin','ordre_execution_at','date_validation_qr','date_confirmation_client','validation_qr_source'].forEach(function(k) {
+    if (order[k]) row[k] = order[k];
+  });
+  return row;
 }
 function saveOrders() {
   localStorage.setItem('lc_orders', JSON.stringify(escrowOrders));
@@ -7421,7 +7479,7 @@ function adminReleaseFunds(orderId) {
   // du prestataire à la livraison) suffit pour libérer les fonds. La double
   // validation croisée (prestataire scanne aussi le QR du client) reste
   // enregistrée si elle existe, mais n'est plus bloquante.
-  if (!order.provider_qr_confirmed) {
+  if (!order.provider_qr_confirmed && order.statut !== 'confirme_client') {
     showNotif('⚠️', 'Confirmation client requise', 'Libération impossible : le client n\'a pas encore confirmé la livraison (scan du QR ou validation manuelle).');
     return;
   }
@@ -11842,7 +11900,7 @@ function finalizeOrder(listing) {
     commission_rate: commRate,
     commission_date: new Date().toISOString(),
     net_prestataire: finance.providerNet,
-    service_token: lcServiceToken(),
+    service_token: '',
     service_qr_link: '',
     statut: 'en_attente_confirmation',
     date: new Date().toISOString(),
@@ -15250,7 +15308,13 @@ function adminSearchByOrder() {
   }
   async function lcSupabaseUpsert(table, row) {
     try {
-      if (typeof db !== 'undefined' && db && row && row.id) await db.from(table).upsert([row], { onConflict: 'id' });
+      if (typeof db !== 'undefined' && db && row && row.id) {
+        var _res = await db.from(table).upsert([row], { onConflict: 'id' });
+        if (_res && _res.error) {
+          console.warn('Supabase ' + table + ':', _res.error.message || _res.error);
+          if (table === 'litigation_cases' && typeof lcNotifyProtection === 'function') lcNotifyProtection('Dossier non enregistré sur le serveur', String(_res.error.message || ''));
+        }
+      }
     } catch(e) { console.warn('Supabase ' + table + ':', e); }
   }
   async function lcSupabaseInsert(table, row) {
@@ -15438,12 +15502,23 @@ function adminSearchByOrder() {
       var res = await query;
       var rows = res && res.data ? res.data : [];
       if (!rows.length) return;
+      var needPush = false;
+      var flagKeys = ['paiement_admin_confirme','ordre_execution_envoye','provider_qr_confirmed','client_qr_confirmed'];
       rows.forEach(function(row) {
         var idx = escrowOrders.findIndex(function(o){ return o.id === row.id; });
-        if (idx >= 0) escrowOrders[idx] = Object.assign({}, escrowOrders[idx], row);
-        else escrowOrders.push(row);
+        if (idx >= 0) {
+          var prev = escrowOrders[idx];
+          var merged = Object.assign({}, prev, row);
+          // Les indicateurs ne redescendent jamais : une valeur vraie locale est conservee puis renvoyee a la base.
+          flagKeys.forEach(function(k) { if (prev[k] === true && merged[k] !== true) { merged[k] = true; needPush = true; } });
+          // Le code secret du QR ne vient jamais de la base : on garde celui deja recupere.
+          if (prev.service_token) merged.service_token = prev.service_token;
+          escrowOrders[idx] = merged;
+        } else escrowOrders.push(row);
       });
       localStorage.setItem('lc_orders', JSON.stringify(escrowOrders));
+      try { await lcRefreshClientQrTokens(); } catch(e) {}
+      if (needPush) { try { saveOrders(); } catch(e) {} }
     } catch(e) { console.warn('Supabase commandes sync:', e); }
   };
 
@@ -15507,6 +15582,30 @@ function adminSearchByOrder() {
     } catch(e) { console.warn('Supabase litigation_cases sync:', e); }
   };
   function lcSaveCases(cases) { lcWrite('lc_litigation_cases', cases || []); }
+  // Une commande peut etre en statut "litige" sans dossier (litige ouvert avant la creation de la table, ou perdu).
+  // L'admin doit toujours les voir : on recree automatiquement le dossier manquant.
+  function lcEnsureCasesForLitigeOrders() {
+    var known = lcLoadCases().map(function(c){ return c.order_id; });
+    (escrowOrders || []).forEach(function(o) {
+      if (!o || o.statut !== 'litige' || known.indexOf(o.id) >= 0) return;
+      known.push(o.id);
+      lcPersistCase({
+        id: 'LIT-' + String(o.id).replace(/[^A-Za-z0-9]/g, ''),
+        order_id: o.id,
+        declarant_id: (typeof lcCurrentId === 'function' ? lcCurrentId() : 'admin'),
+        declarant_role: 'admin',
+        type: 'Litige en cours (dossier recree)',
+        description: o.motif_litige || 'Commande passee en litige sans dossier - dossier recree automatiquement.',
+        preuves_urls: [],
+        statut: 'ouvert',
+        decision: '',
+        montant_libere: null,
+        created_at: o.date_litige || new Date().toISOString(),
+        resolved_at: null,
+        messages: []
+      });
+    });
+  }
   function lcLitigeOptions(role) {
     if (role === 'client') return ['Marchandise non recue','Qualite non conforme','Quantite incorrecte','Retard excessif'];
     return ['Client refuse de signer','Faux litige','Paiement bloque abusivement','Autre'];
@@ -15570,7 +15669,9 @@ function adminSearchByOrder() {
       decision: c.decision || null,
       montant_libere: c.montant_libere || null,
       created_at: c.created_at,
-      resolved_at: c.resolved_at || null
+      resolved_at: c.resolved_at || null,
+      declarant_role: c.declarant_role || null,
+      messages: c.messages || []
     });
   }
   window.lcOpenLitige = function(orderId) {
@@ -15718,6 +15819,7 @@ function adminSearchByOrder() {
     }
     var role = currentUser.type === 'client' ? 'client' : 'prestataire';
     var orders = lcRelevantOrdersForUser();
+    try { if (lcIsAdminUser()) lcEnsureCasesForLitigeOrders(); } catch(e) {}
     var prefill = localStorage.getItem('lc_prefill_litige_order') || '';
     var options = lcLitigeOptions(role).map(function(x){ return '<option value="' + lcEsc(x) + '">' + lcEsc(x) + '</option>'; }).join('');
     var orderOptions = orders.map(function(o){ return '<option value="' + lcEsc(o.id) + '" ' + (o.id === prefill ? 'selected' : '') + '>' + lcEsc(o.id + ' - ' + (o.service || 'Commande')) + '</option>'; }).join('');
@@ -15793,7 +15895,7 @@ function adminSearchByOrder() {
     var _lcOldQrClientHtml = lcQrClientHtml;
     lcQrClientHtml = function(order) {
       var html = _lcOldQrClientHtml(order);
-      if (!html || !order || (typeof lcCanClientSeeQr === 'function' && !lcCanClientSeeQr(order))) return html;
+      if (!html || !order || !order.service_token || (typeof lcCanClientSeeQr === 'function' && !lcCanClientSeeQr(order))) return html;
       return html + '<div style="background:rgba(0,153,255,.04);border:1px solid rgba(0,153,255,.14);border-radius:10px;padding:10px;margin-top:8px;"><div class="lc-protect-muted" style="color:var(--bl);font-weight:800;margin-bottom:4px;">Partager le QR</div>' + lcShareButtonsHtml('qr', order.id) + '</div>';
     };
   }
@@ -15844,8 +15946,8 @@ function adminSearchByOrder() {
   };
   if (typeof validateServiceQrToken === 'function') {
     var _lcOldValidateServiceQrToken = validateServiceQrToken;
-    validateServiceQrToken = function(orderId, token) {
-      var ok = _lcOldValidateServiceQrToken.apply(this, arguments);
+    validateServiceQrToken = async function(orderId, token) {
+      var ok = await _lcOldValidateServiceQrToken.apply(this, arguments);
       if (!ok) return ok;
       try {
         var order = lcOrder(orderId);
@@ -16691,13 +16793,20 @@ function adminSearchByOrder() {
 
   function loadCases() { return read('lc_litigation_cases', []); }
   function saveCases(cases) { write('lc_litigation_cases', cases || []); }
+  function lcLitigeCheck(res) {
+    if (res && res.error) {
+      console.warn('litigation_cases:', res.error.message || res.error);
+      try { notify('Dossier non enregistré sur le serveur', String(res.error.message || ''), 'Litige'); } catch(e) {}
+    }
+    return res;
+  }
   async function persistCase(c) {
     var cases = loadCases();
     var idx = cases.findIndex(function(x){ return x.id === c.id; });
     if (idx >= 0) cases[idx] = c; else cases.unshift(c);
     saveCases(cases);
     try {
-      if (typeof db !== 'undefined' && db && c) await db.from('litigation_cases').upsert([{
+      if (typeof db !== 'undefined' && db && c) lcLitigeCheck(await db.from('litigation_cases').upsert([{
         id:c.id,
         order_id:c.order_id,
         declarant_id:c.declarant_id,
@@ -16709,8 +16818,10 @@ function adminSearchByOrder() {
         montant_libere:c.montant_libere || null,
         created_at:c.created_at,
         resolved_at:c.resolved_at || null,
-        reopened_at:c.reopened_at || null
-      }], { onConflict:'id' });
+        reopened_at:c.reopened_at || null,
+        declarant_role:c.declarant_role || null,
+        messages:c.messages || []
+      }], { onConflict:'id' }));
     } catch(e) {}
   }
   function setOrderLitige(order, caseId, type, desc) {
