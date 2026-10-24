@@ -5712,6 +5712,9 @@ function lcCommunicationHtml(order, cur, compact) {
     + '</div>';
 }
 function lcLitigeBoxHtml(order, role) {
+  if (order && order.statut !== 'litige' && ['paiement_a_valider_admin','paye_en_attente_service','attente_comptabilite','confirme_client'].indexOf(order.statut) >= 0) {
+    return '<div style="margin-top:10px;"><button onclick="lcOpenLitige(\'' + lcEscOrderId(order.id) + '\')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.3);color:var(--rd);padding:9px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">⚠️ Faire une réclamation</button></div>';
+  }
   if (!order || order.statut !== 'litige') return '';
   var esc = lcEscOrderId(order.id);
   var caseRef = order.litige_id ? ' — Dossier <b style="color:#fff;">' + sanitizeInput(order.litige_id) + '</b>' : '';
@@ -15561,13 +15564,31 @@ function adminSearchByOrder() {
         }
       });
       try {
-        var pl = document.getElementById('page-litige');
-        if (pl && pl.classList.contains('on') && typeof window.lcSyncLitigationCasesFromSupabase === 'function') {
-          var sig0 = JSON.stringify((lcLoadCases() || []).map(function(c){ return [c.id, c.statut, (c.messages || []).length]; }));
+        if (typeof window.lcSyncLitigationCasesFromSupabase === 'function') {
+          var prevMap = lcCaseMsgMap();
           await window.lcSyncLitigationCasesFromSupabase();
-          var sig1 = JSON.stringify((lcLoadCases() || []).map(function(c){ return [c.id, c.statut, (c.messages || []).length]; }));
+          var vis = lcVisibleCases();
+          var meId = String(lcCurrentId());
+          if (window._lcCasesInit) {
+            vis.forEach(function(c) {
+              var pr = prevMap[c.id];
+              if (!pr) { if (lcIsAdminUser() && lcCaseGroup(c) !== 'cloture') showNotif('🚨', 'Nouvelle réclamation', 'Commande ' + c.order_id + ' : ' + (c.type || '')); }
+              else if ((c.messages || []).length > pr[0]) {
+                var last = (c.messages || [])[(c.messages || []).length - 1] || {};
+                if (String(last.author_id || '') !== meId) showNotif('💬', 'Nouveau message', 'Dossier ' + c.id + ' (commande ' + c.order_id + ')');
+              }
+            });
+          } else {
+            window._lcCasesInit = true;
+            var nAtt = vis.filter(lcLitigeNeedsAttention).length;
+            if (nAtt > 0) showNotif('🚨', 'Réclamations', nAtt + ' réclamation(s) à traiter dans la page Litige.');
+          }
+          lcUpdateLitigeBadge();
+          var pl = document.getElementById('page-litige');
+          var nowMap = lcCaseMsgMap();
+          var diff = Object.keys(nowMap).some(function(k){ return !prevMap[k] || prevMap[k][0] !== nowMap[k][0] || prevMap[k][1] !== nowMap[k][1]; });
           var ae2 = document.activeElement;
-          if (sig0 !== sig1 && !(ae2 && /^(INPUT|TEXTAREA|SELECT)$/.test(ae2.tagName))) renderLitigePage();
+          if (pl && pl.classList.contains('on') && diff && !(ae2 && /^(INPUT|TEXTAREA|SELECT)$/.test(ae2.tagName))) renderLitigePage();
         }
       } catch(e) {}
       if (changed && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('on')) {
@@ -15599,6 +15620,38 @@ function adminSearchByOrder() {
   }
 
   function lcLoadCases() { return lcRead('lc_litigation_cases', []); }
+  function lcCaseMsgMap() { var m = {}; (lcLoadCases() || []).forEach(function(c){ m[c.id] = [(c.messages || []).length, c.statut]; }); return m; }
+  function lcVisibleCases() {
+    if (typeof currentUser === 'undefined' || !currentUser) return [];
+    var all = lcLoadCases() || [];
+    if (lcIsAdminUser()) return all;
+    var em = String(currentUser.email || '').toLowerCase();
+    return all.filter(function(c){
+      var o = lcOrder(c.order_id) || {};
+      return c.declarant_id === lcCurrentId() || String(o.client_email || '').toLowerCase() === em || String(o.prestataire_email || '').toLowerCase() === em || String(o.prestataire_user_id || '').toLowerCase() === em;
+    });
+  }
+  function lcLitigeNeedsAttention(c) {
+    if (lcCaseGroup(c) === 'cloture') return false;
+    if (lcIsAdminUser() && lcCaseGroup(c) === 'ouverte') return true;
+    var msgs = c.messages || [];
+    var seen = 0; try { seen = parseInt(localStorage.getItem('lc_lit_seen_' + c.id) || '0', 10) || 0; } catch(e) {}
+    if (msgs.length <= seen) return false;
+    var last = msgs[msgs.length - 1] || {};
+    return String(last.author_id || '') !== String(lcCurrentId());
+  }
+  window.lcUpdateLitigeBadge = function() {
+    try {
+      var n = lcVisibleCases().filter(lcLitigeNeedsAttention).length;
+      var targets = [document.getElementById('nav-litige-btn')].concat(Array.prototype.slice.call(document.querySelectorAll('[data-lc-protect-litige]')));
+      targets.forEach(function(el) {
+        if (!el) return;
+        var b = el.querySelector('.lc-lit-badge');
+        if (!b) { b = document.createElement('span'); b.className = 'lc-lit-badge'; b.style.cssText = 'margin-left:6px;background:#ff3b30;color:#fff;border-radius:999px;padding:1px 7px;font-size:10px;font-weight:900;'; el.appendChild(b); }
+        b.textContent = n; b.style.display = n > 0 ? 'inline-block' : 'none';
+      });
+    } catch(e) {}
+  };
   // FIX: les dossiers litige n'étaient jamais synchronisés depuis Supabase (lecture
   // uniquement de localStorage 'lc_litigation_cases'). Un litige ouvert par un client
   // sur son appareil n'apparaissait donc jamais chez le prestataire (transporteur/stockeur)
@@ -15662,10 +15715,30 @@ function adminSearchByOrder() {
       });
     } catch(e) { return []; }
   }
-  function lcCaseStatusPill(st) {
-    var cls = st === 'ouvert' ? 'open' : (st === 'en_instruction' ? 'work' : 'ok');
-    return '<span class="lc-litige-pill ' + cls + '">' + lcEsc(st || 'ouvert') + '</span>';
+  function lcCaseGroup(c) {
+    var st = String((c && c.statut) || 'ouvert');
+    if ((c && c.resolved_at) || /^resolu|^rembours|^clotur/.test(st)) return 'cloture';
+    return st === 'en_instruction' ? 'encours' : 'ouverte';
   }
+  var LC_GROUP_LABEL = { ouverte: 'Réclamation ouverte', encours: 'Réclamation en cours', cloture: 'Réclamation clôturée' };
+  function lcCaseStatusPill(st) {
+    var g = lcCaseGroup({ statut: st });
+    var cls = g === 'ouverte' ? 'open' : (g === 'encours' ? 'work' : 'ok');
+    return '<span class="lc-litige-pill ' + cls + '">' + LC_GROUP_LABEL[g] + '</span>';
+  }
+  window.lcTakeLitige = function(caseId) {
+    if (!lcIsAdminUser()) return;
+    var c = lcLoadCases().find(function(x){ return x.id === caseId; });
+    if (!c || lcCaseGroup(c) !== 'ouverte') return;
+    c.statut = 'en_instruction';
+    c.messages = c.messages || [];
+    c.messages.push({ author: 'admin', author_id: lcCurrentId(), text: 'Votre réclamation est prise en charge par LogiConnect. Nous l\'étudions et revenons vers vous.', date: new Date().toISOString() });
+    lcPersistCase(c);
+    lcNotifyProtection('Réclamation en cours', 'Dossier ' + c.id + ' pris en charge.');
+    renderLitigePage();
+  };
+  window._lcLitigeTab = window._lcLitigeTab || 'tous';
+  window.lcSetLitigeTab = function(t) { window._lcLitigeTab = t; renderLitigePage(); };
   function lcCountdown72(created) {
     var ms = new Date(created || Date.now()).getTime() + 72 * 3600000 - Date.now();
     if (isNaN(ms)) ms = 0;
@@ -15836,6 +15909,16 @@ function adminSearchByOrder() {
     lcNotifyProtection('Litige cloture', c.decision);
     renderLitigePage();
   };
+  function lcLitigeTabsHtml(cases) {
+    var cnt = { ouverte: 0, encours: 0, cloture: 0 };
+    cases.forEach(function(c){ cnt[lcCaseGroup(c)]++; });
+    var tab = window._lcLitigeTab || 'tous';
+    function b(key, label, n) {
+      var on = tab === key;
+      return '<button onclick="lcSetLitigeTab(\'' + key + '\')" style="cursor:pointer;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;border:1px solid ' + (on ? 'var(--or)' : 'var(--bd2)') + ';background:' + (on ? 'var(--or)' : 'transparent') + ';color:' + (on ? '#fff' : 'var(--mt2)') + ';">' + label + ' (' + n + ')</button>';
+    }
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">' + b('tous', 'Toutes', cases.length) + b('ouverte', 'Ouvertes', cnt.ouverte) + b('encours', 'En cours', cnt.encours) + b('cloture', 'Clôturées', cnt.cloture) + '</div>';
+  }
   function lcCaseCard(c) {
     var order = lcOrder(c.order_id) || {};
     var messages = (c.messages || []).map(function(m){
@@ -15845,11 +15928,12 @@ function adminSearchByOrder() {
       var label = lcEsc(p.name || 'preuve');
       return p.url && /^data:image\//.test(p.url) ? '<img src="' + p.url + '" alt="' + label + '" style="width:74px;height:74px;object-fit:cover;border-radius:8px;border:1px solid var(--bd2);">' : '<span style="border:1px solid var(--bd2);border-radius:8px;padding:8px;color:var(--mt2);font-size:11px;">' + label + '</span>';
     }).join('');
-    var adminBtns = lcIsAdminUser() && !c.resolved_at ? '<div class="lc-share-row"><button class="lc-share-btn" onclick="lcResolveLitige(\'' + c.id + '\',\'client\')">Liberer vers client</button><button class="lc-share-btn wa" onclick="lcResolveLitige(\'' + c.id + '\',\'prestataire\')">Liberer vers prestataire</button><button class="lc-share-btn mail" onclick="lcResolveLitige(\'' + c.id + '\',\'split\')">Partager 50/50</button></div>' : '';
+    var takeBtn = (lcIsAdminUser() && lcCaseGroup(c) === 'ouverte') ? '<div class="lc-share-row"><button class="lc-share-btn wa" onclick="lcTakeLitige(\'' + c.id + '\')">Prendre en charge (passer en cours)</button></div>' : '';
+    var adminBtns = takeBtn + (lcIsAdminUser() && !c.resolved_at ? '<div class="lc-share-row"><button class="lc-share-btn" onclick="lcResolveLitige(\'' + c.id + '\',\'client\')">Liberer vers client</button><button class="lc-share-btn wa" onclick="lcResolveLitige(\'' + c.id + '\',\'prestataire\')">Liberer vers prestataire</button><button class="lc-share-btn mail" onclick="lcResolveLitige(\'' + c.id + '\',\'split\')">Partager 50/50</button></div>' : '');
     return '<div class="lc-protect-card">' +
       '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div class="lc-protect-title">' + lcEsc(c.id) + ' - Commande ' + lcEsc(c.order_id) + '</div><div class="lc-protect-muted">' + lcEsc(order.service || '') + '</div></div><div>' + lcCaseStatusPill(c.statut) + '</div></div>' +
-      '<div class="lc-timeline"><span class="on">Ouvert</span><span class="' + (c.statut !== 'ouvert' ? 'on' : '') + '">Instruction</span><span class="' + (c.resolved_at ? 'on' : '') + '">Decision</span></div>' +
-      '<div class="lc-protect-muted"><b>Type :</b> ' + lcEsc(c.type) + ' | <b>72h :</b> ' + lcEsc(lcCountdown72(c.created_at)) + '</div>' +
+      '<div class="lc-timeline"><span class="on">Ouverte</span><span class="' + (lcCaseGroup(c) !== 'ouverte' ? 'on' : '') + '">En cours</span><span class="' + (lcCaseGroup(c) === 'cloture' ? 'on' : '') + '">Clôturée</span></div>' +
+      '<div class="lc-protect-muted"><b>Type :</b> ' + lcEsc(c.type) + ' | <b>Ouverte le :</b> ' + new Date(c.created_at || Date.now()).toLocaleString('fr-FR') + (lcCaseGroup(c) === 'cloture' ? '' : ' | <b>72h :</b> ' + lcEsc(lcCountdown72(c.created_at))) + '</div>' + (lcIsAdminUser() ? '<div class="lc-protect-muted"><b>Déclarant :</b> ' + lcEsc(c.declarant_role || '') + ' (' + lcEsc(c.declarant_id || '') + ') | <b>Client :</b> ' + lcEsc(order.client_email || '-') + ' | <b>Prestataire :</b> ' + lcEsc(order.prestataire_email || '-') + ' | <b>Montant :</b> ' + lcEsc(String(order.montant || '-')) + '</div>' : '') +
       '<div style="margin-top:10px;font-size:13px;color:var(--mt3);line-height:1.55;">' + lcEsc(c.description) + '</div>' +
       (proofs ? '<div class="lc-share-row" style="margin-top:12px;">' + proofs + '</div>' : '') +
       '<div style="margin-top:12px;">' + messages + '</div>' +
@@ -15882,11 +15966,16 @@ function adminSearchByOrder() {
       var curEmailLower = String(currentUser.email||'').toLowerCase();
       return c.declarant_id === lcCurrentId() || String(o.client_email||'').toLowerCase() === curEmailLower || String(o.prestataire_email||'').toLowerCase() === curEmailLower || String(o.prestataire_user_id||'').toLowerCase() === curEmailLower;
     });
+    var tab = window._lcLitigeTab || 'tous';
+    try { cases.forEach(function(c){ localStorage.setItem('lc_lit_seen_' + c.id, String((c.messages || []).length)); }); setTimeout(lcUpdateLitigeBadge, 0); } catch(e) {}
+    cases.sort(function(a, b){ return new Date(b.created_at || 0) - new Date(a.created_at || 0); });
+    var shown = cases.filter(function(c){ return tab === 'tous' || lcCaseGroup(c) === tab; });
     root.innerHTML =
-      '<div class="lc-protect-card"><div class="lc-protect-title">Systeme de litige securise</div><div class="lc-protect-muted">Un litige gele automatiquement les fonds escrow et ouvre une timeline visible par les parties et l administrateur.</div></div>' +
-      (!lcIsAdminUser() ? '<div class="lc-protect-card"><div class="lc-protect-title">Deposer un litige</div><div class="lc-protect-grid"><div class="lc-protect-field"><label>Numero de commande</label><select id="litige-order-id">' + orderOptions + '</select></div><div class="lc-protect-field"><label>Type de litige</label><select id="litige-type">' + options + '</select></div></div><div class="lc-protect-field" style="margin-top:12px;"><label>Description libre</label><textarea id="litige-desc" maxlength="800" placeholder="Expliquez clairement le probleme..."></textarea></div><div class="lc-protect-field" style="margin-top:12px;"><label>Preuves photos/PDF</label><input id="litige-proofs" type="file" multiple accept="image/*,application/pdf"></div><button class="btn-full" style="margin-top:14px;" onclick="lcSubmitLitigeForm()">Deposer le litige</button></div>' : '') +
-      '<div class="lc-protect-title" style="margin:20px 0 12px;">Dossiers litige</div>' +
-      (cases.length ? cases.map(lcCaseCard).join('') : '<div class="lc-protect-card"><div class="lc-protect-muted">Aucun litige pour le moment.</div></div>');
+      '<div class="lc-protect-card"><div class="lc-protect-title">Réclamations (litiges)</div><div class="lc-protect-muted">Un litige gele automatiquement les fonds escrow et ouvre une timeline visible par les parties et l administrateur.</div></div>' +
+      (!lcIsAdminUser() ? '<div class="lc-protect-card"><div class="lc-protect-title">Déposer une réclamation</div><div class="lc-protect-grid"><div class="lc-protect-field"><label>Numero de commande</label><select id="litige-order-id">' + orderOptions + '</select></div><div class="lc-protect-field"><label>Type de litige</label><select id="litige-type">' + options + '</select></div></div><div class="lc-protect-field" style="margin-top:12px;"><label>Description libre</label><textarea id="litige-desc" maxlength="800" placeholder="Expliquez clairement le probleme..."></textarea></div><div class="lc-protect-field" style="margin-top:12px;"><label>Preuves photos/PDF</label><input id="litige-proofs" type="file" multiple accept="image/*,application/pdf"></div><button class="btn-full" style="margin-top:14px;" onclick="lcSubmitLitigeForm()">Déposer la réclamation</button></div>' : '') +
+      '<div class="lc-protect-title" style="margin:20px 0 12px;">Réclamations</div>' +
+      lcLitigeTabsHtml(cases) +
+      (shown.length ? shown.map(lcCaseCard).join('') : '<div class="lc-protect-card"><div class="lc-protect-muted">Aucune réclamation dans cette catégorie.</div></div>');
     localStorage.removeItem('lc_prefill_litige_order');
   };
 
@@ -16338,6 +16427,7 @@ function adminSearchByOrder() {
   function lcRefreshProtectionNav() {
     var b = document.getElementById('nav-litige-btn');
     if (b) b.style.display = (typeof currentUser !== 'undefined' && currentUser) ? 'block' : 'none';
+    try { lcUpdateLitigeBadge(); } catch(e) {}
   }
   if (typeof updateNavAuth === 'function') {
     var _lcOldUpdateNavAuth = updateNavAuth;
@@ -16349,6 +16439,7 @@ function adminSearchByOrder() {
     if (!dnav.querySelector('[data-lc-protect-litige]')) {
       var l = document.createElement('div'); l.className = 'dn'; l.setAttribute('data-lc-protect-litige','1'); l.textContent = 'Litiges'; l.onclick = function(){ goPage('litige'); };
       dnav.appendChild(l);
+      try { lcUpdateLitigeBadge(); } catch(e) {}
     }
     if (!dnav.querySelector('[data-lc-protect-scan]')) {
       var q = document.createElement('div'); q.className = 'dn'; q.setAttribute('data-lc-protect-scan','1'); q.textContent = currentUser.type === 'client' ? 'Mon QR de confirmation' : 'Valider par QR / code'; q.onclick = function(){ goPage('scan-livraison'); };
