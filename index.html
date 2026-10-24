@@ -15532,6 +15532,44 @@ function adminSearchByOrder() {
       return _lcOldRenderDashboard.apply(this, arguments);
     };
   }
+  // Rafraichissement automatique des commandes : sans cela, le prestataire ne voyait la
+  // confirmation du paiement par l'admin qu'apres avoir recharge toute la page.
+  function lcOrdersSnapshot() {
+    var m = {};
+    (escrowOrders || []).forEach(function(o){ m[o.id] = [o.statut, !!o.paiement_admin_confirme, !!o.ordre_execution_envoye, !!o.provider_qr_confirmed].join('|'); });
+    return m;
+  }
+  var lcPollBusy = false;
+  window.lcPollOrders = async function() {
+    if (lcPollBusy || typeof currentUser === 'undefined' || !currentUser || typeof db === 'undefined' || !db) return;
+    lcPollBusy = true;
+    try {
+      var before = lcOrdersSnapshot();
+      await window.lcSyncCommandesFromSupabase();
+      var after = lcOrdersSnapshot();
+      var changed = false;
+      var me = String(currentUser.email || '').toLowerCase();
+      Object.keys(after).forEach(function(id) {
+        if (before[id] === after[id]) return;
+        changed = true;
+        var o = escrowOrders.find(function(x){ return x.id === id; });
+        if (!o || !before[id]) return;
+        var wasPaid = before[id].split('|')[0] === 'paye_en_attente_service';
+        if (o.statut === 'paye_en_attente_service' && !wasPaid) {
+          if (String(o.prestataire_email || '').toLowerCase() === me) showNotif('🚀', 'Paiement confirmé', 'Commande ' + o.id + ' : vous pouvez commencer le service.');
+          else if (String(o.client_email || '').toLowerCase() === me) showNotif('✅', 'Paiement confirmé', 'Commande ' + o.id + ' : le prestataire peut commencer. Votre QR est dans Mes demandes.');
+        }
+      });
+      if (changed && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('on')) {
+        var ae = document.activeElement;
+        var typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+        if (!typing) { try { renderDashboard(); } catch(e) {} }
+      }
+    } catch(e) {}
+    lcPollBusy = false;
+  };
+  setInterval(function(){ if (document.visibilityState === 'visible') window.lcPollOrders(); }, 15000);
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') setTimeout(window.lcPollOrders, 300); });
   if (typeof doRegister === 'function') {
     var _lcOldDoRegister = doRegister;
     doRegister = async function(type) {
