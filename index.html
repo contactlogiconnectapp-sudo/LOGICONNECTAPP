@@ -6406,6 +6406,20 @@ function updateNavAuth() {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // LOGIN
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+async function lcEnsureSecureSession(emailLower, pass) {
+  if (typeof db === 'undefined' || !db || !db.auth) return false;
+  var cur = await db.auth.getSession();
+  var u = cur && cur.data && cur.data.session && cur.data.session.user;
+  if (u && String(u.email || '').toLowerCase() === emailLower) return true;
+  var r = await db.auth.signInWithPassword({ email: emailLower, password: pass });
+  if (!r.error) return true;
+  var su = await db.auth.signUp({ email: emailLower, password: pass, options: { emailRedirectTo: window.location.origin } });
+  if (su.error) { console.warn('Supabase auth.signUp (connexion):', su.error.message); return false; }
+  if (su.data && su.data.session) return true;
+  var r2 = await db.auth.signInWithPassword({ email: emailLower, password: pass });
+  if (r2.error) console.warn('Session securisee en attente (confirmation email ?):', r2.error.message);
+  return !r2.error;
+}
 async function doLogin() {
   const email = document.getElementById('l-email').value.trim();
   const pass  = document.getElementById('l-pass').value.trim();
@@ -6503,6 +6517,9 @@ async function doLogin() {
 
   if (found) {
     resetRateLimit(email);
+    // Vraie session securisee (Supabase Auth) : necessaire pour que la base reconnaisse l'utilisateur
+    // et ne lui montre que ses propres donnees. Compte cree automatiquement s'il n'existe pas encore.
+    try { await lcEnsureSecureSession(emailLower, pass); } catch(e) { console.warn('Session securisee:', e); }
     // Session SANS mot de passe
     const safeSession = lcHydrateUserLocale({ ...found }, true);
     delete safeSession.mot_de_passe;
