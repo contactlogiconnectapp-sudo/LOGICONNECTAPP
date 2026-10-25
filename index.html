@@ -5085,9 +5085,12 @@ function lcCurrencyForCountry(country) {
       var norm = function(v){ return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); };
       var cn = norm(c);
       var keys = Object.keys(COUNTRY_CURRENCY).sort(function(a,b){ return b.length - a.length; });
+      // 1) correspondance exacte d'abord (evite Mali -> Somalie, Niger -> Nigeria, etc.)
+      for (var j=0;j<keys.length;j++) { if (cn === norm(keys[j])) return COUNTRY_CURRENCY[keys[j]].code; }
+      // 2) puis correspondance partielle (ex. "Helsinki, Finlande")
       for (var i=0;i<keys.length;i++) {
         var kn = norm(keys[i]);
-        if (cn === kn || cn.indexOf(kn) >= 0 || kn.indexOf(cn) >= 0) return COUNTRY_CURRENCY[keys[i]].code;
+        if (cn.indexOf(kn) >= 0 || kn.indexOf(cn) >= 0) return COUNTRY_CURRENCY[keys[i]].code;
       }
     }
   } catch(e) {}
@@ -5102,8 +5105,8 @@ function lcCurrencyForCountry(country) {
   if (c.indexOf('france') >= 0 || c.indexOf('europe') >= 0) return 'EUR';
   if (c.indexOf('usa') >= 0 || c.indexOf('etats') >= 0 || c.indexOf('états') >= 0 || c.indexOf('united states') >= 0) return 'USD';
   if (c.indexOf('uk') >= 0 || c.indexOf('royaume') >= 0) return 'GBP';
-  try { var detected = getCurrencyFromLocation(raw); if (detected && detected.code && detected.code !== 'EUR') return detected.code; } catch(e) {}
-  return 'DZD';
+  try { var detected = getCurrencyFromLocation(raw); if (detected && detected.code) return detected.code; } catch(e) {}
+  return 'EUR';
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•═
@@ -6310,6 +6313,17 @@ function updateNavAuth() {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // LOGIN
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Comptes crees avant la correction (enregistres seulement dans le navigateur) : copie dans la table inscriptions.
+async function lcSyncUserToDb(u) {
+  if (!u || !u.email || typeof db === 'undefined' || !db) return;
+  var ex = await db.from('inscriptions').select('id').ilike('email', String(u.email));
+  if (ex && ex.data && ex.data.length) return;
+  var cols = ['type','prenom','nom','email','telephone','pays','ville','mot_de_passe_hash','besoin','description','paiement','vehicule','zone','licence','tarif','type_espace','surface','prix_m2','disponibilite','ambassadeur_code','country','langue','locale','timezone','geo_country_auto','geo_detected_at'];
+  var row = {}; cols.forEach(function(k){ if (u[k] !== undefined && u[k] !== null && u[k] !== '') row[k] = u[k]; });
+  if (!row.type || !row.mot_de_passe_hash) return;
+  var r = await db.from('inscriptions').insert([row]);
+  if (r && r.error) console.warn('inscriptions (copie):', r.error.message);
+}
 async function lcEnsureSecureSession(emailLower, pass) {
   if (typeof db === 'undefined' || !db || !db.auth) return false;
   var cur = await db.auth.getSession();
@@ -6424,6 +6438,7 @@ async function doLogin() {
     // Vraie session securisee (Supabase Auth) : necessaire pour que la base reconnaisse l'utilisateur
     // et ne lui montre que ses propres donnees. Compte cree automatiquement s'il n'existe pas encore.
     try { await lcEnsureSecureSession(emailLower, pass); } catch(e) { console.warn('Session securisee:', e); }
+    try { await lcSyncUserToDb(found); } catch(e) { console.warn('Copie du compte dans la base:', e); }
     // Session SANS mot de passe
     const safeSession = lcHydrateUserLocale({ ...found }, true);
     delete safeSession.mot_de_passe;
@@ -6932,7 +6947,7 @@ function lcCommandeRow(order) {
   ['paiement_admin_confirme','ordre_execution_envoye','provider_qr_confirmed','client_qr_confirmed'].forEach(function(k) {
     if (order[k] === true) row[k] = true;
   });
-  ['date_validation_paiement_admin','ordre_execution_at','date_validation_qr','date_confirmation_client','validation_qr_source'].forEach(function(k) {
+  ['date_validation_paiement_admin','ordre_execution_at','date_validation_qr','date_confirmation_client','validation_qr_source','relance_confirmation_livraison_at','relance_confirmation_livraison_deadline','relance_confirmation_livraison_count'].forEach(function(k) {
     if (order[k]) row[k] = order[k];
   });
   return row;
@@ -8290,6 +8305,8 @@ function renderUserDash() {
                 <button onclick="confirmDelivery('${o.id}')" style="flex:1;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:10px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">✅ Service réalisé — montrer le QR au prestataire</button>
                 <button onclick="disputeOrder('${o.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:10px 14px;border-radius:9px;font-size:12px;cursor:pointer;">⚠️ Litige</button>
               </div>`;
+            } else if (o.statut === 'attente_comptabilite' && o.relance_confirmation_livraison_at) {
+              actionHtml = `<div style="margin-top:12px;padding:12px;border-top:1px solid var(--bd);background:rgba(255,179,0,.06);border-radius:8px;"><div style="font-size:12px;color:var(--yw);line-height:1.5;margin-bottom:10px;">📨 LogiConnect vous demande de confirmer la bonne réception de votre commande.</div><div style="display:flex;gap:8px;"><button onclick="confirmDelivery('${o.id}')" style="flex:1;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">✅ Confirmer la réception</button><button onclick="disputeOrder('${o.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:10px 14px;border-radius:9px;font-size:12px;cursor:pointer;">⚠️ Litige</button></div></div>`;
             } else if (o.statut === 'confirme_client') {
               actionHtml = `<div style="margin-top:12px;padding:12px;border-top:1px solid var(--bd);background:rgba(0,230,118,.05);border-radius:8px;display:flex;gap:10px;align-items:center;"><span style="font-size:18px;">⏳</span><span style="font-size:12px;color:var(--gr);line-height:1.5;">✅ Vous avez confirmé la réception. En attente de la validation admin pour libérer les fonds.</span></div>`;
             } else if (o.statut === 'termine') {
@@ -8927,6 +8944,8 @@ function renderUserDash() {
             <button onclick="confirmDelivery('${o.id}')" style="flex:1;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:10px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">✅ Confirmer la livraison — libérer ${lcMoney(netPrest, orderCur)}</button>
             <button onclick="disputeOrder('${o.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:10px 14px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;">⚠️ Litige</button>
           </div>`;
+        } else if (o.statut === 'attente_comptabilite' && o.relance_confirmation_livraison_at) {
+          actions = `<div style="margin-top:12px;padding:12px;border-top:1px solid var(--bd);background:rgba(255,179,0,.06);border-radius:8px;"><div style="font-size:12px;color:var(--yw);line-height:1.5;margin-bottom:10px;">📨 LogiConnect vous demande de confirmer la bonne réception de votre commande.</div><div style="display:flex;gap:8px;"><button onclick="confirmDelivery('${o.id}')" style="flex:1;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:10px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">✅ Confirmer la réception</button><button onclick="disputeOrder('${o.id}')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--rd);padding:10px 14px;border-radius:9px;font-size:12px;cursor:pointer;">⚠️ Litige</button></div></div>`;
         }
 
         // PayPal button toujours visible si pas encore terminé/litige
@@ -9812,6 +9831,12 @@ function getListingPhoto(listing) {
 // DEVISES MONDIALES — pays → devise
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const COUNTRY_CURRENCY = {
+  'finlande':{'code':'EUR','symbol':'€','locale':'fi-FI'},
+  'finland':{'code':'EUR','symbol':'€','locale':'fi-FI'},
+  'maurice':{'code':'MUR','symbol':'Rs','locale':'fr-MU'},
+  'mauritius':{'code':'MUR','symbol':'Rs','locale':'en-MU'},
+  'laos':{'code':'LAK','symbol':'₭','locale':'lo-LA'},
+  'soudan':{'code':'SDG','symbol':'SDG','locale':'ar-SD'},
   // Afrique du Nord & Moyen-Orient
   'maroc':{'code':'MAD','symbol':'MAD','locale':'fr-MA'},
   'morocco':{'code':'MAD','symbol':'MAD','locale':'fr-MA'},
@@ -15130,7 +15155,7 @@ function adminSearchByOrder() {
   // confirmation du paiement par l'admin qu'apres avoir recharge toute la page.
   function lcOrdersSnapshot() {
     var m = {};
-    (escrowOrders || []).forEach(function(o){ m[o.id] = [o.statut, !!o.paiement_admin_confirme, !!o.ordre_execution_envoye, !!o.provider_qr_confirmed].join('|'); });
+    (escrowOrders || []).forEach(function(o){ m[o.id] = [o.statut, !!o.paiement_admin_confirme, !!o.ordre_execution_envoye, !!o.provider_qr_confirmed, o.relance_confirmation_livraison_at || ''].join('|'); });
     return m;
   }
   var lcPollBusy = false;
@@ -15182,6 +15207,17 @@ function adminSearchByOrder() {
           if (pl && pl.classList.contains('on') && diff && !(ae2 && /^(INPUT|TEXTAREA|SELECT)$/.test(ae2.tagName))) renderLitigePage();
         }
       } catch(e) {}
+      try {
+        if (document.getElementById('annonces-list') && typeof syncPendingAnnoncesFromSupabase === 'function' && !window.__lcPendingAnnoncesSyncing && typeof lcIsAdminUser === 'function' && lcIsAdminUser()) {
+          var beforeIds = JSON.stringify(loadPendingAnnonces().map(function(a){ return a.id; }).sort());
+          window.__lcPendingAnnoncesSyncing = true;
+          await syncPendingAnnoncesFromSupabase();
+          window.__lcPendingAnnoncesSyncing = false;
+          var afterIds = JSON.stringify(loadPendingAnnonces().map(function(a){ return a.id; }).sort());
+          var ae3 = document.activeElement;
+          if (beforeIds !== afterIds && window._adminNav && !(ae3 && /^(INPUT|TEXTAREA|SELECT)$/.test(ae3.tagName))) window._adminNav('annonces');
+        }
+      } catch(e) { window.__lcPendingAnnoncesSyncing = false; }
       if (changed && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('on')) {
         var ae = document.activeElement;
         var typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
