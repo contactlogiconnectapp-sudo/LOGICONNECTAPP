@@ -6324,6 +6324,48 @@ async function lcSyncUserToDb(u) {
   var r = await db.from('inscriptions').insert([row]);
   if (r && r.error) console.warn('inscriptions (copie):', r.error.message);
 }
+async function lcSyncAmbToDb(u) {
+  if (!u || typeof db === 'undefined' || !db) return;
+  var code = String(u.ambassadeur_code || u.code || '');
+  var emailL = String(u.email || '').toLowerCase();
+  var ex = code ? await db.from('ambassadeurs').select('id').eq('code', code) : { data: [] };
+  if (ex && ex.data && ex.data.length) return;
+  var loc = (ambassadeurs || []).find(function(a){ return (code && a.code === code) || String(a.email || '').toLowerCase() === emailL; });
+  if (!loc || !loc.code) return;
+  var cols = ['id','code','prenom','nom','email','telephone','profil','ecole','niveau','entreprise','poste','secteur','activite','statut_juridique','domaine_indep','reseau_social','experience','paiement','paiement_detail','link','statut','taux_commission','commissions_total','commissions_en_attente','commissions_en_traitement','operations_count','link_clicks','operations','historique_paiements','notifications','created_at'];
+  var row = {}; cols.forEach(function(k){ if (loc[k] !== undefined && loc[k] !== null && loc[k] !== '') row[k] = loc[k]; });
+  var r = await db.from('ambassadeurs').upsert([row], { onConflict: 'code' });
+  if (r && r.error) console.warn('ambassadeurs (copie):', r.error.message);
+}
+async function lcExportAllData() {
+  if (typeof db === 'undefined' || !db) { showNotif('⚠️', 'Export', 'Base non disponible.'); return; }
+  showNotif('⏳', 'Export en cours', 'Récupération des données...');
+  var tables = ['inscriptions','ambassadeurs','annonces','commandes','commande_qr','litigation_cases','profiles','activite','operators','escrow_events'];
+  var out = { exporte_le: new Date().toISOString(), tables: {}, erreurs: {} };
+  for (var i = 0; i < tables.length; i++) {
+    var t = tables[i], all = [], from = 0, fail = null;
+    while (true) {
+      var r = await db.from(t).select('*').range(from, from + 999);
+      if (r.error) { fail = r.error.message; break; }
+      var d = r.data || [];
+      all = all.concat(d);
+      if (d.length < 1000) break;
+      from += 1000;
+    }
+    all.forEach(function(row){ delete row.mot_de_passe_hash; delete row.mot_de_passe; });
+    out.tables[t] = all;
+    if (fail) out.erreurs[t] = fail;
+  }
+  var blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = 'logiconnect_export_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  var n = Object.keys(out.tables).map(function(k){ return k + ': ' + out.tables[k].length; }).join(' • ');
+  showNotif('✅', 'Export terminé', n + (Object.keys(out.erreurs).length ? ' (certaines tables non lisibles)' : ''));
+}
 async function lcEnsureSecureSession(emailLower, pass) {
   if (typeof db === 'undefined' || !db || !db.auth) return false;
   var cur = await db.auth.getSession();
@@ -6382,6 +6424,7 @@ async function doLogin() {
     }
     if (match) {
       resetRateLimit(email);
+      try { await lcEnsureSecureSession(emailLower, pass); } catch(e) { console.warn('Session admin securisee:', e); }
       // Session admin SANS le mot de passe
       const adminUser = lcHydrateUserLocale({ email: ADMIN_EMAIL, prenom: 'Admin', nom: 'LogiConnect', type: 'admin' }, false);
       currentUser = adminUser;
@@ -6413,9 +6456,10 @@ async function doLogin() {
   // Supabase fallback
   if (!found && db) {
     try {
+      var lcAuthOk = false;
       if (db.auth) {
         const { error: authLoginError } = await db.auth.signInWithPassword({ email: emailLower, password: pass });
-        if (authLoginError) { console.warn('Supabase auth login:', authLoginError.message); }
+        if (authLoginError) { console.warn('Supabase auth login:', authLoginError.message); } else { lcAuthOk = true; }
       }
       const { data } = await db.from('inscriptions').select('*').ilike('email', emailLower);
       if (data && data.length > 0) {
@@ -6430,6 +6474,24 @@ async function doLogin() {
           }
         }
       }
+      // Ambassadeur (mot de passe verifie par Supabase Auth) : recupere sa fiche depuis la table ambassadeurs
+      if (!found && lcAuthOk) {
+        const ar = await db.from('ambassadeurs').select('*').ilike('email', emailLower).limit(1);
+        const am = ar && ar.data && ar.data[0];
+        if (am) {
+          found = { type: 'ambassadeur', prenom: am.prenom, nom: am.nom, email: am.email, telephone: am.telephone, paiement: am.paiement, ambassadeur_code: am.code, created_at: am.created_at };
+          if (!localUsers.find(x => x.email.toLowerCase() === emailLower)) {
+            localUsers.push(found);
+            localStorage.setItem('lc_users', JSON.stringify(localUsers));
+          }
+          try {
+            const idxA = ambassadeurs.findIndex(x => x.code === am.code);
+            if (idxA >= 0) ambassadeurs[idxA] = am; else ambassadeurs.push(am);
+            localStorage.setItem('lc_ambassadeurs', JSON.stringify(ambassadeurs));
+            localStorage.setItem('lc_amb_current', JSON.stringify(am));
+          } catch(e2) {}
+        }
+      }
     } catch(e) { console.warn('Supabase login:', e); }
   }
 
@@ -6439,6 +6501,7 @@ async function doLogin() {
     // et ne lui montre que ses propres donnees. Compte cree automatiquement s'il n'existe pas encore.
     try { await lcEnsureSecureSession(emailLower, pass); } catch(e) { console.warn('Session securisee:', e); }
     try { await lcSyncUserToDb(found); } catch(e) { console.warn('Copie du compte dans la base:', e); }
+    try { if (found.type === 'ambassadeur') await lcSyncAmbToDb(found); } catch(e) { console.warn('Copie ambassadeur dans la base:', e); }
     // Session SANS mot de passe
     const safeSession = lcHydrateUserLocale({ ...found }, true);
     delete safeSession.mot_de_passe;
@@ -7027,7 +7090,7 @@ function openPaymentModal(orderId) {
         <button id="ptab-bank" style="display:none;"></button>
       </div>
       <div style="background:rgba(255,179,0,.06);border-bottom:1px solid rgba(255,179,0,.15);padding:8px 20px;font-size:11px;color:var(--yw);text-align:center;">
-        ⚠️ Carte bancaire &amp; virement temporairement indisponibles — Paiement via PayPal uniquement
+        💳 Vous pouvez payer par carte bancaire (Visa, Mastercard) via le bouton « Carte de débit ou de crédit », sans compte PayPal
       </div>
 
       <div style="padding:24px 28px 28px;">
@@ -9469,6 +9532,7 @@ function loadOperators() {
 async function loadAnnoncesfromInscriptions() {
   const inscrits = [];
   const remoteAnnonces = [];
+  let remoteOk = false;
   // 1. Depuis localStorage (inscriptions locales)
   try {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('lc_user_') || k === 'lc_inscriptions');
@@ -9479,7 +9543,8 @@ async function loadAnnoncesfromInscriptions() {
   // 2. Depuis Supabase
   if (db) {
     try {
-      const { data: annoncesData } = await db.from('annonces').select('*').or('published.eq.true,statut.eq.publie');
+      const { data: annoncesData, error: annoncesErr } = await db.from('annonces').select('*').or('published.eq.true,statut.eq.publie');
+      if (!annoncesErr && Array.isArray(annoncesData)) remoteOk = true;
       if (annoncesData && annoncesData.length > 0) remoteAnnonces.push(...annoncesData);
     } catch(e) { console.warn('Supabase annonces:', e); }
     try {
@@ -9488,10 +9553,16 @@ async function loadAnnoncesfromInscriptions() {
     } catch(e) { console.warn('Supabase inscriptions:', e); }
   }
 
-  if (inscrits.length === 0 && remoteAnnonces.length === 0) return;
+  if (inscrits.length === 0 && remoteAnnonces.length === 0 && !remoteOk) return;
 
   // Convertir les inscrits en annonces et les fusionner
-  const currentOps = loadOperators();
+  let currentOps = loadOperators();
+  // La base fait foi : une annonce publiee qui n'existe pas dans la base (ancien test reste dans ce navigateur)
+  // n'est plus affichee, pour que tous les navigateurs montrent exactement les memes annonces.
+  if (remoteOk) {
+    const remoteIds = new Set(remoteAnnonces.map(function(a){ return String(a && a.id); }));
+    currentOps = currentOps.filter(function(op){ return !!op && remoteIds.has(String(op.id)); });
+  }
   const newOps = [...currentOps];
   const pendingOps = loadPendingAnnonces();
 
@@ -12133,6 +12204,7 @@ function renderAdminDash() {
               <button onclick="exportFondsLiberesExcel()" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--gr);padding:7px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📊 Export Excel</button>
               <button onclick="exportCommissionsAmbExcel()" style="background:rgba(255,179,0,.1);border:1px solid rgba(255,179,0,.3);color:var(--yw);padding:7px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📊 Excel Ambassadeurs</button>
               <button onclick="exportLitigesExcel()" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.25);color:var(--rd);padding:7px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">⚠️ Excel Litiges</button>
+              <button onclick="lcExportAllData()" style="background:rgba(80,140,255,.1);border:1px solid rgba(80,140,255,.3);color:#8fb4ff;padding:7px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">💾 Exporter toutes les données</button>
             </div>
           </div>
         </div>
@@ -14598,7 +14670,7 @@ function _ensurePaypalSDK() {
     var s = document.createElement("script");
     // Mode test PayPal (sandbox) : actif seulement dans le navigateur ou l'identifiant sandbox a ete enregistre.
     var _lcPpSandbox = ""; try { _lcPpSandbox = (localStorage.getItem("lc_paypal_sandbox_client") || "").trim(); } catch(e) {}
-    s.src = "https://www.paypal.com/sdk/js?client-id=" + (/^[A-Za-z0-9_-]{20,200}$/.test(_lcPpSandbox) ? _lcPpSandbox : "BAAoWCiRk-XaLONHeHqvHAFERH0rNqMctJThGMVbHvDnoyyeiNPiGGJ3v7nuBRdylKcukGrFcL08IodEks") + "&components=buttons,hosted-buttons&disable-funding=venmo&currency=USD";
+    s.src = "https://www.paypal.com/sdk/js?client-id=" + (/^[A-Za-z0-9_-]{20,200}$/.test(_lcPpSandbox) ? _lcPpSandbox : "BAAoWCiRk-XaLONHeHqvHAFERH0rNqMctJThGMVbHvDnoyyeiNPiGGJ3v7nuBRdylKcukGrFcL08IodEks") + "&components=buttons,hosted-buttons&enable-funding=card&disable-funding=venmo&currency=USD";
     s.onload = function() {
       _paypalSdkLoaded = true;
       resolve();
