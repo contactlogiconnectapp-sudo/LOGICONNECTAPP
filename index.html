@@ -14572,7 +14572,10 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
   }
   var paypalUrl = _buildPaypalUrl(montantUSD, orderId);
   var fb = document.getElementById("paypal-smart-btn-container");
-  if (fb) {
+  var _lcSb = lcPpSandboxId();
+  if (fb && _lcSb) {
+    fb.innerHTML = '<div style="background:rgba(120,80,255,.12);border:1px solid rgba(120,80,255,.4);color:#c9b8ff;border-radius:10px;padding:10px 12px;font-size:12px;text-align:center;margin-bottom:8px;">\u{1F9EA} MODE TEST (sandbox) \u2014 aucun argent r\u00E9el. Utilisez le compte acheteur de test PayPal.</div>';
+  } else if (fb) {
     fb.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;"><button id="lc-pp-open-btn" onclick="lcOpenPaypalAndDeclare('` + orderId + "','" + callbackFn + "','" + encodeURIComponent(paypalUrl) + `')" style="width:100%;background:#FFD140;color:#111;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><span style="font-size:20px;">\u{1F17F}\uFE0F</span> Payer <strong>$` + montantUSDFormatted + ` USD</strong> via PayPal</button><div style="text-align:center;font-size:10px;color:#555;padding-top:4px;">\u{1F4A1} Cliquez "Payer" \u2192 PayPal s'ouvre dans un nouvel onglet \u2192 revenez ici, votre commande sera automatiquement en attente de validation</div></div>`;
   }
   try {
@@ -14610,6 +14613,10 @@ async function showUSDConversionPopup(montantLocal, deviseCode, deviseSymbol, or
     }
   } catch (sdkErr) {
     console.warn("[LC PayPal] SDK non disponible, bouton manuel utilis\xE9.", sdkErr);
+  }
+  if (_lcSb && !(window.paypal && window.paypal.Buttons)) {
+    var fbErr = document.getElementById("paypal-smart-btn-container");
+    if (fbErr) fbErr.insertAdjacentHTML("beforeend", '<div style="background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.4);color:#ff8a80;border-radius:10px;padding:10px 12px;font-size:12px;text-align:center;">\u274C Le bouton PayPal de test ne se charge pas : l\'identifiant sandbox est probablement incorrect (v\u00E9rifiez le Client ID de l\'onglet Sandbox).</div>');
   }
 }
 function _triggerPaypalFallback(orderId, callbackFn, montantUSD) {
@@ -14656,6 +14663,30 @@ function _launchPaypalDirect(orderId, callbackFn, extraArgs, montantUSD) {
   }
   window.location.href = PAYPAL_ME_LINK;
 }
+function lcPpSandboxId() {
+  var v = ""; try { v = (localStorage.getItem("lc_paypal_sandbox_client") || "").trim(); } catch (e) {}
+  return /^[A-Za-z0-9_-]{20,200}$/.test(v) ? v : "";
+}
+// Activation du mode test SANS console : ouvrir le site avec  ?paypal_sandbox=VOTRE_CLIENT_ID  (et ?paypal_sandbox=off pour quitter)
+(function() {
+  try {
+    var q = new URLSearchParams(window.location.search).get("paypal_sandbox");
+    if (q !== null) {
+      if (q === "off") localStorage.removeItem("lc_paypal_sandbox_client");
+      else if (/^[A-Za-z0-9_-]{20,200}$/.test(q.trim())) localStorage.setItem("lc_paypal_sandbox_client", q.trim());
+      history.replaceState(null, "", window.location.pathname + window.location.hash);
+    }
+  } catch (e) {}
+  function banner() {
+    if (!lcPpSandboxId() || document.getElementById("lc-sbx-banner")) return;
+    var d = document.createElement("div");
+    d.id = "lc-sbx-banner";
+    d.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:#5b3df5;color:#fff;font:700 12px sans-serif;padding:8px 12px;text-align:center;";
+    d.innerHTML = '\u{1F9EA} MODE TEST PAYPAL (sandbox) \u2014 aucun argent r\u00E9el &nbsp; <a href="?paypal_sandbox=off" style="color:#fff;text-decoration:underline;">Quitter le mode test</a>';
+    document.body.appendChild(d);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", banner); else banner();
+})();
 var _paypalSdkLoaded = false;
 var _paypalSdkLoading = null;
 function _ensurePaypalSDK() {
